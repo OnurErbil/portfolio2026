@@ -25,15 +25,29 @@ donut-generator/
 ├─ src/
 │  ├─ assets/
 │  ├─ components/
-│  │  └─ HelloWorld.vue     # Vite-Boilerplate, wird noch entfernt/ersetzt
+│  │  ├─ ConfiguratorPanel.vue    # Accordion-Panel, komponiert die configurator/-Bausteine
+│  │  └─ configurator/
+│  │     ├─ AccordionSection.vue  # Ein-/Zuklapp-Sektion (WAI-ARIA Disclosure-Pattern)
+│  │     ├─ OptionCardGroup.vue   # Icon-Card-Radiogroup (Form, Teig, Füllung)
+│  │     ├─ ColorSwatchGroup.vue  # Farb-Swatch-Radiogroup (Icing)
+│  │     ├─ ToppingChipGroup.vue  # Mehrfachauswahl-Chips (Toppings)
+│  │     └─ SwitchToggle.vue      # An/Aus-Switch (Ernährungsfilter)
+│  ├─ composables/
+│  │  └─ useRadioGroupKeyboard.ts # Roving Tabindex + Pfeiltasten-Navigation
+│  ├─ state/
+│  │  └─ donutConfig.ts     # zentraler reactive Store für den Konfigurationsstate
 │  ├─ three/
 │  │  ├─ main.ts            # initScene() – Szenen-Setup, Lifecycle
 │  │  ├─ donut.ts           # loadDonut() – GLTF laden, Meshes identifizieren
+│  │  ├─ placeholders.ts    # No-op-Funktionen für Form/Füllung/Toppings (Meshes fehlen noch)
 │  │  └─ gui.ts             # lil-gui Debug-Panels (temporär)
+│  ├─ utils/
+│  │  └─ color.ts           # hexToCss-Helper
 │  ├─ App.vue
 │  ├─ main.ts                # Vue-Einstiegspunkt
 │  └─ style.css
 ├─ docs/
+│  ├─ PROGRESS.md            # Tracking umgesetzter Arbeitspakete, siehe „Tracking-Workflow" unten
 │  └─ design/                # TODO: Design-Screenshots/Exports hier ablegen
 ├─ index.html
 ├─ vite.config.ts
@@ -44,23 +58,17 @@ donut-generator/
 
 ## Aktueller Stand (Stand: Projektstart-Phase abgeschlossen)
 
-Bereits umgesetzt:
-- Vite + Vue3 + TS Projekt aufgesetzt
-- Three.js-Szene sauber in Vue-Komponente eingebunden (`App.vue`): Canvas-Ref, `initScene()` in `onMounted`, Cleanup-Funktion in `onUnmounted`
-- Three.js-Szene mit PerspectiveCamera, WebGLRenderer, OrbitControls (Damping aktiviert, Zoom-Range 0.5–3)
-- Environment Lighting via `PMREMGenerator` + `RoomEnvironment` für realistische Reflexionen
-- Ambient + Directional Light, aktuell über lil-gui einstellbar
-- Eigenes `donut.glb`-Modell wird per `GLTFLoader` geladen
-- Meshes werden per Namenskonvention erkannt (siehe unten) und Material wird geklont, um Shared-Material-Bugs zu vermeiden
-- Erste Farbwerte für Donut- und Icing-Material gesetzt (`metalness`/`roughness`/`color`)
-- Cleanup-Pattern vorhanden: `initScene()` gibt eine Dispose-Funktion zurück (Animation-Frame canceln, Event-Listener entfernen, Controls/Renderer/GUI disposen)
+### Tracking-Workflow
+
+Neue Arbeitspakete werden von Claude Code zunächst in [`docs/PROGRESS.md`](docs/PROGRESS.md)
+dokumentiert (Status `⏳ wartet auf Bestätigung`). **Erst wenn der Projektinhaber die dort
+gelisteten Punkte bestätigt**, werden sie hier unter „Bereits umgesetzt" ergänzt und aus
+„Noch offen / nächste Schritte" gestrichen. So bleibt dieser Abschnitt die alleinige,
+nicht-doppelte Quelle für den bestätigten Ist-Stand – Claude Code soll nichts eigenständig
+von „Noch offen" nach „Bereits umgesetzt" verschieben, ohne dass diese Bestätigung erfolgt ist.
 
 **Noch offen / nächste Schritte:**
-- `HelloWorld.vue` (Vite-Boilerplate) ist noch nicht entfernt
-- Kein zentraler State/Store für Konfigurationsoptionen (Farben aktuell hart im Code gesetzt bzw. über lil-gui manipuliert)
-- Keine echte Konfigurator-UI (ColorSelector, Material-Auswahl etc.) – bisher nur Debug-GUI
-- Kein responsives Layout
-- Deployment-Pipeline (Ziel: IONOS 1&1, manuelles FTP-Deployment, `base`-Pfad in `vite.config.ts` beachten)
+
 
 ## Wichtige Konventionen im Code
 
@@ -88,6 +96,10 @@ Ausschließlich Debug-Werkzeug. Neue Konfigurationsoptionen für Endnutzer gehö
 - Composition API mit `<script setup>` für neue Vue-Komponenten
 - Kommentare/Variablennamen im Projekt sind bisher gemischt Deutsch/Englisch (z. B. `Bounding Box berechnen`) – bei neuem Code beim bestehenden Stil bleiben, nicht künstlich vereinheitlichen, außer explizit gewünscht
 - Keine neuen State-Management-Libraries (Pinia o. ä.) einführen, ohne kurz nachzufragen – aktuell ist noch offen, ob ein einfacher reactive Store reicht
+
+Lese folgenden Prototypen um die generelle Struktur und Aufbau des Donut Generators zu verinnerlichen:
+
+- @context
 
 
 

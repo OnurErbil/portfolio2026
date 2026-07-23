@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style id="__om-edit-overrides"></style>
+  <style>
+    body { margin: 0; background: #F5F1E6; }
+    a { color: #D0006F; text-decoration: none; }
+    a:hover { color: #F47216; }
+    input[type="range"] { accent-color: #F47216; }
+    @keyframes donutBounceA { 0% { transform:scale(1) rotate(0deg);} 30% { transform:scale(1.08) rotate(-3deg);} 60% { transform:scale(0.96) rotate(2deg);} 100% { transform:scale(1) rotate(0deg);} }
+    @keyframes donutBounceB { 0% { transform:scale(1) rotate(0deg);} 30% { transform:scale(1.08) rotate(3deg);} 60% { transform:scale(0.96) rotate(-2deg);} 100% { transform:scale(1) rotate(0deg);} }
+    @keyframes spinDonut { to { transform:rotate(360deg); } }
+    @keyframes confettiFall { 0% { transform:translateY(-6px) rotate(0deg); opacity:1; } 100% { transform:translateY(54px) rotate(320deg); opacity:0; } }
+  </style>
+</helmet>
+
+<div style="min-height:100vh; background:#F5F1E6; font-family:'Poppins',sans-serif; color:#2B2320; padding:24px 24px 120px;">
+
+  <div style="max-width:1400px; margin:0 auto 28px;">
+    <dc-import name="Top Navigation" hint-size="100%,72px"></dc-import>
+  </div>
+
+  <div style="max-width:1400px; margin:0 auto; display:flex; flex-wrap:wrap; gap:32px; align-items:flex-start;">
+
+    <div style="flex:1 1 520px; min-width:360px; display:flex; flex-direction:column; gap:16px;">
+      <div style="position:relative; background:#F5F1E6; border:2px dashed #e4d9c1; border-radius:24px; min-height:520px; display:flex; align-items:center; justify-content:center; overflow:hidden; background-image:repeating-linear-gradient(135deg, #efe8d6 0px, #efe8d6 14px, #F5F1E6 14px, #F5F1E6 28px);">
+
+        <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="position:relative; width:96px; height:96px; display:flex; align-items:center; justify-content:center; font-size:52px; animation:spinDonut 900ms linear infinite;">🍩</div>
+        </sc-if>
+
+        <sc-if value="{{ notLoading }}" hint-placeholder-val="{{ true }}">
+        <div style="{{ previewAnimStyle }}">
+        <sc-if value="{{ previewIsMini }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; gap:28px; align-items:center;">
+            <sc-for list="{{ previewMinis }}" as="pm" hint-placeholder-count="3">
+              <div style="position:relative; width:110px; height:110px; filter:drop-shadow(0 18px 24px rgba(43,35,32,0.18));">
+                <div style="width:100%; height:100%; border-radius:50%; background:{{ pm.color }};"></div>
+                <div style="position:absolute; top:50%; left:50%; width:34%; height:34%; border-radius:50%; background:{{ pm.doughColor }}; transform:translate(-50%,-50%);"></div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ previewIsBar }}" hint-placeholder-val="{{ false }}">
+          <div style="position:relative; width:340px; height:150px; border-radius:999px; background:{{ previewIcingColor }}; filter:drop-shadow(0 20px 28px rgba(43,35,32,0.2));">
+            <sc-for list="{{ previewSprinkles }}" as="sp" hint-placeholder-count="6">
+              <div style="position:absolute; top:{{ sp.top }}; left:{{ sp.left }}; width:10px; height:5px; border-radius:3px; background:{{ sp.color }}; transform:rotate({{ sp.rot }});"></div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ previewIsRound }}" hint-placeholder-val="{{ true }}">
+          <div style="position:relative; width:280px; height:280px; filter:drop-shadow(0 24px 32px rgba(43,35,32,0.2));">
+            <div style="width:100%; height:100%; border-radius:50%; background:{{ previewIcingColor }};"></div>
+            <div style="position:absolute; top:50%; left:50%; width:34%; height:34%; border-radius:50%; background:{{ previewDoughColor }}; transform:translate(-50%,-50%);"></div>
+            <sc-if value="{{ previewHasTwist }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute; inset:0; border-radius:50%; border:5px dashed rgba(255,255,255,0.55);"></div>
+            </sc-if>
+            <sc-for list="{{ previewSprinkles }}" as="sp2" hint-placeholder-count="6">
+              <div style="position:absolute; top:{{ sp2.top }}; left:{{ sp2.left }}; width:12px; height:6px; border-radius:3px; background:{{ sp2.color }}; transform:rotate({{ sp2.rot }});"></div>
+            </sc-for>
+          </div>
+        </sc-if>
+        </div>
+        </sc-if>
+
+        <div style="position:absolute; bottom:20px; right:20px; background:rgba(255,255,255,0.85); border-radius:999px; padding:6px 14px;">
+          <span style="font-family:monospace; font-size:11px; color:#8a7f74; letter-spacing:0.03em;">3D CANVAS PLACEHOLDER</span>
+        </div>
+      </div>
+      <div style="text-align:center; font-family:'Poppins'; font-size:13px; color:#8a7f74;">Ziehen zum Drehen · Scrollen zum Zoomen</div>
+    </div>
+
+    <div style="flex:1 1 420px; min-width:340px; display:flex; flex-direction:column; gap:16px;">
+
+      <div>
+        <div style="font-family:'Poppins'; font-weight:700; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:#D0006F;">Konfigurator</div>
+        <h1 style="font-family:'Fredoka',sans-serif; font-weight:700; text-transform:uppercase; font-size:32px; color:#2B2320; margin:4px 0 0;">Bau deinen Donut</h1>
+      </div>
+
+      <div style="background:#FFFFFF; border-radius:24px; box-shadow:0 10px 30px rgba(43,35,32,0.1); max-height:calc(100vh - 260px); overflow-y:auto; display:flex; flex-direction:column;">
+
+      <div style="border-bottom:1px solid #F0EBDF;">
+        <div onClick="{{ toggleForm }}" style="display:flex; align-items:center; gap:14px; padding:18px 24px; cursor:pointer;">
+          <div style="width:44px; height:44px; border-radius:14px; background:#FCE9DA; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:22px;">🍩</div>
+          <div style="flex:1;">
+            <div style="font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; color:#2B2320;">Form</div>
+            <div style="font-family:'Poppins'; font-size:12px; color:#8a7f74; margin-top:2px;">{{ formSummary }}</div>
+          </div>
+          <span style="font-family:'Poppins'; font-weight:700; font-size:13px; color:#D0006F;">{{ formChevron }}</span>
+        </div>
+        <sc-if value="{{ openForm }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:0 24px 24px; display:grid; grid-template-columns:repeat(2,1fr); gap:12px;">
+            <sc-for list="{{ shapeOptions }}" as="opt" hint-placeholder-count="4">
+              <div onClick="{{ opt.onClick }}" style="position:relative; border:2px solid {{ opt.borderColor }}; border-radius:16px; padding:14px; display:flex; align-items:center; gap:10px; cursor:pointer; background:{{ opt.bg }}; transition:transform 0.18s, box-shadow 0.18s;" style-hover="transform:translateY(-3px) rotateX(4deg); box-shadow:0 10px 20px rgba(43,35,32,0.14);">
+                <div style="width:40px; height:40px; border-radius:12px; background:#E8DCC4; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:20px;">{{ opt.emoji }}</div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:#2B2320;">{{ opt.label }}</div>
+                  <div style="font-family:'Poppins'; font-size:11px; color:#8a7f74; margin-top:1px;">{{ opt.desc }}</div>
+                </div>
+                <span style="width:18px; height:18px; border-radius:50%; border:2px solid {{ opt.radioBorder }}; background:{{ opt.radioBg }}; flex-shrink:0;"></span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="border-bottom:1px solid #F0EBDF;">
+        <div onClick="{{ toggleTeig }}" style="display:flex; align-items:center; gap:14px; padding:18px 24px; cursor:pointer;">
+          <div style="width:44px; height:44px; border-radius:14px; background:#F3E4C0; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:22px;">🥖</div>
+          <div style="flex:1;">
+            <div style="font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; color:#2B2320;">Teig</div>
+            <div style="font-family:'Poppins'; font-size:12px; color:#8a7f74; margin-top:2px;">{{ teigSummary }}</div>
+          </div>
+          <span style="font-family:'Poppins'; font-weight:700; font-size:13px; color:#D0006F;">{{ teigChevron }}</span>
+        </div>
+        <sc-if value="{{ openTeig }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:0 24px 24px; display:grid; grid-template-columns:repeat(2,1fr); gap:12px;">
+            <sc-for list="{{ doughOptions }}" as="d" hint-placeholder-count="4">
+              <div onClick="{{ d.onClick }}" style="position:relative; border:2px solid {{ d.borderColor }}; border-radius:16px; padding:14px; display:flex; align-items:center; gap:10px; cursor:pointer; background:{{ d.bg }}; transition:transform 0.18s, box-shadow 0.18s;" style-hover="transform:translateY(-3px) rotateX(4deg); box-shadow:0 10px 20px rgba(43,35,32,0.14);">
+                <div style="width:32px; height:32px; border-radius:10px; background:#E8DCC4; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:16px;">{{ d.emoji }}</div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:#2B2320;">{{ d.label }}</div>
+                  <div style="font-family:'Poppins'; font-size:11px; color:#8a7f74; margin-top:1px;">{{ d.desc }}</div>
+                </div>
+                <span style="width:18px; height:18px; border-radius:50%; border:2px solid {{ d.radioBorder }}; background:{{ d.radioBg }}; flex-shrink:0;"></span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="border-bottom:1px solid #F0EBDF;">
+        <div onClick="{{ toggleFuellung }}" style="display:flex; align-items:center; gap:14px; padding:18px 24px; cursor:pointer;">
+          <div style="width:44px; height:44px; border-radius:14px; background:#EDE3F5; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:22px;">🍇</div>
+          <div style="flex:1;">
+            <div style="font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; color:#2B2320;">Füllung</div>
+            <div style="font-family:'Poppins'; font-size:12px; color:#8a7f74; margin-top:2px;">{{ fuellungSummary }}</div>
+          </div>
+          <span style="font-family:'Poppins'; font-weight:700; font-size:13px; color:#D0006F;">{{ fuellungChevron }}</span>
+        </div>
+        <sc-if value="{{ openFuellung }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:0 24px 24px; display:grid; grid-template-columns:repeat(2,1fr); gap:12px;">
+            <sc-for list="{{ fillingOptions }}" as="f" hint-placeholder-count="5">
+              <div onClick="{{ f.onClick }}" style="position:relative; border:2px solid {{ f.borderColor }}; border-radius:16px; padding:14px; display:flex; align-items:center; gap:10px; cursor:pointer; background:{{ f.bg }}; transition:transform 0.18s, box-shadow 0.18s;" style-hover="transform:translateY(-3px) rotateX(4deg); box-shadow:0 10px 20px rgba(43,35,32,0.14);">
+                <div style="width:32px; height:32px; border-radius:10px; background:#F0E6D2; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:16px;">{{ f.emoji }}</div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:#2B2320;">{{ f.label }}</div>
+                  <div style="font-family:'Poppins'; font-size:11px; color:#8a7f74; margin-top:1px;">{{ f.desc }}</div>
+                </div>
+                <span style="width:18px; height:18px; border-radius:50%; border:2px solid {{ f.radioBorder }}; background:{{ f.radioBg }}; flex-shrink:0;"></span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="border-bottom:1px solid #F0EBDF;">
+        <div onClick="{{ toggleIcing }}" style="display:flex; align-items:center; gap:14px; padding:18px 24px; cursor:pointer;">
+          <div style="width:44px; height:44px; border-radius:14px; background:#FBE1EE; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:22px;">🍥</div>
+          <div style="flex:1;">
+            <div style="font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; color:#2B2320;">Icing / Glasur</div>
+            <div style="font-family:'Poppins'; font-size:12px; color:#8a7f74; margin-top:2px;">{{ icingSummary }}</div>
+          </div>
+          <span style="font-family:'Poppins'; font-weight:700; font-size:13px; color:#D0006F;">{{ icingChevron }}</span>
+        </div>
+        <sc-if value="{{ openIcing }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:0 24px 24px; display:flex; flex-direction:column; gap:18px;">
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+              <sc-for list="{{ icingOptions }}" as="ic" hint-placeholder-count="6">
+                <div onClick="{{ ic.onClick }}" style="width:40px; height:40px; border-radius:50%; background:{{ ic.color }}; border:{{ ic.border }}; box-shadow:{{ ic.shadow }}; cursor:pointer; transition:transform 0.18s;" style-hover="transform:translateY(-3px) scale(1.08);"></div>
+              </sc-for>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-family:'Poppins'; font-size:13px; font-weight:600; color:#5c5148; margin-bottom:8px;">
+                <span>Glanzgrad</span><span>{{ glossValue }}%</span>
+              </div>
+              <input type="range" min="0" max="100" value="{{ glossValue }}" onChange="{{ onGlossChange }}" style="width:100%;" />
+            </div>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="border-bottom:1px solid #F0EBDF;">
+        <div onClick="{{ toggleToppings }}" style="display:flex; align-items:center; gap:14px; padding:18px 24px; cursor:pointer;">
+          <div style="width:44px; height:44px; border-radius:14px; background:#FCE9DA; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:22px;">✨</div>
+          <div style="flex:1;">
+            <div style="font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; color:#2B2320;">Toppings</div>
+            <div style="font-family:'Poppins'; font-size:12px; color:#8a7f74; margin-top:2px;">{{ toppingsSummary }}</div>
+          </div>
+          <span style="font-family:'Poppins'; font-weight:700; font-size:13px; color:#D0006F;">{{ toppingsChevron }}</span>
+        </div>
+        <sc-if value="{{ openToppings }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:0 24px 24px; display:flex; flex-wrap:wrap; gap:10px;">
+            <sc-for list="{{ toppingOptions }}" as="t" hint-placeholder-count="5">
+              <div onClick="{{ t.onClick }}" style="display:flex; align-items:center; gap:8px; border:2px solid {{ t.borderColor }}; background:{{ t.bg }}; border-radius:999px; padding:8px 16px; cursor:pointer; transition:transform 0.18s, box-shadow 0.18s;" style-hover="transform:translateY(-2px); box-shadow:0 8px 16px rgba(43,35,32,0.12);">
+                <span style="width:14px; height:14px; border-radius:50%; background:{{ t.color }};"></span>
+                <span style="font-family:'Poppins'; font-size:13px; font-weight:600;">{{ t.label }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+
+      <div>
+        <div onClick="{{ toggleDiaet }}" style="display:flex; align-items:center; gap:14px; padding:18px 24px; cursor:pointer;">
+          <div style="width:44px; height:44px; border-radius:14px; background:#E3F0E6; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:22px;">🌱</div>
+          <div style="flex:1;">
+            <div style="font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; color:#2B2320;">Ernährungsfilter</div>
+            <div style="font-family:'Poppins'; font-size:12px; color:#8a7f74; margin-top:2px;">{{ diaetSummary }}</div>
+          </div>
+          <span style="font-family:'Poppins'; font-weight:700; font-size:13px; color:#D0006F;">{{ diaetChevron }}</span>
+        </div>
+        <sc-if value="{{ openDiaet }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:0 24px 28px; display:flex; flex-direction:column; gap:16px;">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <span style="font-family:'Poppins'; font-size:14px; font-weight:600;">Vegan</span>
+              <div onClick="{{ toggleVegan }}" style="width:44px; height:24px; border-radius:999px; background:{{ veganTrack }}; position:relative; cursor:pointer; transition:background 0.15s;">
+                <div style="position:absolute; top:2px; left:{{ veganKnobLeft }}; width:20px; height:20px; border-radius:50%; background:#FFFFFF; box-shadow:0 2px 4px rgba(0,0,0,0.2); transition:left 0.15s;"></div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <span style="font-family:'Poppins'; font-size:14px; font-weight:600;">Glutenfrei</span>
+              <div onClick="{{ toggleGlutenfrei }}" style="width:44px; height:24px; border-radius:999px; background:{{ glutenTrack }}; position:relative; cursor:pointer; transition:background 0.15s;">
+                <div style="position:absolute; top:2px; left:{{ glutenKnobLeft }}; width:20px; height:20px; border-radius:50%; background:#FFFFFF; box-shadow:0 2px 4px rgba(0,0,0,0.2); transition:left 0.15s;"></div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div style="position:fixed; bottom:0; left:0; right:0; background:#FFFFFF; box-shadow:0 -8px 24px rgba(43,35,32,0.12); padding:14px 24px;">
+    <div style="max-width:1400px; margin:0 auto; display:flex; flex-direction:column; gap:10px;">
+      <div style="display:flex; flex-wrap:wrap; gap:8px;">
+        <sc-for list="{{ selectionChips }}" as="chip" hint-placeholder-count="4">
+          <div style="display:flex; align-items:center; gap:6px; background:#F5F1E6; border-radius:999px; padding:5px 12px 5px 6px;">
+            <span style="width:16px; height:16px; border-radius:50%; background:{{ chip.color }}; border:{{ chip.border }}; flex-shrink:0;"></span>
+            <span style="font-family:'Poppins'; font-size:12px; font-weight:600; color:#5c5148; white-space:nowrap;">{{ chip.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+        <div>
+          <div style="font-family:'Poppins'; font-size:12px; color:#8a7f74; text-transform:uppercase; letter-spacing:0.06em;">Dein Donut</div>
+          <div style="font-family:'Fredoka',sans-serif; font-weight:700; font-size:26px; color:#D0006F;">{{ priceLabel }}</div>
+        </div>
+        <button onClick="{{ onAddToCollection }}" style="position:relative; overflow:visible; font-family:'Fredoka',sans-serif; font-weight:600; text-transform:uppercase; font-size:15px; color:#FFFFFF; background:#F47216; border:none; border-radius:999px; padding:16px 36px; box-shadow:0 8px 18px rgba(244,114,22,0.35); cursor:pointer;">
+          Zur Sammlung hinzufügen
+          <sc-for list="{{ confettiParticles }}" as="cp" hint-placeholder-count="0">
+            <span style="position:absolute; top:6px; left:{{ cp.left }}; width:7px; height:7px; border-radius:2px; background:{{ cp.color }}; animation:confettiFall 650ms ease-out {{ cp.delay }} forwards; opacity:0;"></span>
+          </sc-for>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div style="position:fixed; bottom:{{ toastBottom }}; left:50%; transform:translateX(-50%); background:#2B2320; color:#FFFFFF; font-family:'Poppins'; font-weight:600; font-size:14px; padding:14px 24px; border-radius:999px; box-shadow:0 10px 24px rgba(0,0,0,0.25); opacity:{{ toastOpacity }}; transition:bottom 0.25s ease, opacity 0.25s ease; pointer-events:none; z-index:50;">Donut gespeichert! 🍩</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    openSection: 'form',
+    shape: 'classic',
+    dough: 'hefe',
+    filling: 'ohne',
+    icing: '#F47216',
+    gloss: 60,
+    toppings: ['streusel'],
+    vegan: false,
+    glutenfrei: false,
+    isLoading: true,
+    bounceTick: 0,
+    confettiActive: false,
+    toastActive: false,
+  };
+
+  componentDidMount() {
+    this._loadTimer = setTimeout(() => this.setState({ isLoading: false }), 900);
+  }
+  componentWillUnmount() {
+    clearTimeout(this._loadTimer);
+    clearTimeout(this._confettiTimer);
+    clearTimeout(this._toastTimer);
+  }
+
+  toggle(key) { this.setState(s => ({ openSection: s.openSection === key ? null : key })); }
+  chevron(open) { return open ? '^' : 'v'; }
+  bump() { this.setState(s => ({ bounceTick: s.bounceTick + 1 })); }
+
+  addToCollection() {
+    clearTimeout(this._confettiTimer);
+    clearTimeout(this._toastTimer);
+    this.setState({ confettiActive: true, toastActive: true });
+    this._confettiTimer = setTimeout(() => this.setState({ confettiActive: false }), 700);
+    this._toastTimer = setTimeout(() => this.setState({ toastActive: false }), 2200);
+  }
+
+  renderVals() {
+    const s = this.state;
+    const mk = (id, label, color, current, setKey, extra) => ({
+      id, label,
+      color,
+      bg: current === id ? '#FFF7EE' : '#FFFFFF',
+      borderColor: current === id ? '#F47216' : '#F0EBDF',
+      onClick: () => { this.setState({ [setKey]: id }); this.bump(); },
+      ...extra,
+    });
+
+    const radio = (active) => ({ radioBorder: active ? '#F47216' : '#e4d9c1', radioBg: active ? '#F47216' : 'transparent' });
+
+    const shapeOptions = [
+      { id:'classic', label:'Klassisch rund', desc:'Der Original-Ring', color:'#F4A62A', emoji:'🍩' },
+      { id:'twist', label:'Ring mit Twist', desc:'Gedrehte Form', color:'#D0006F', emoji:'🥨' },
+      { id:'bar', label:'Länglich / Bar', desc:'Long John Style', color:'#8a5a2b', emoji:'🥖' },
+      { id:'mini', label:'Mini-Donuts', desc:'3er-Set', emoji:'🍩' },
+    ].map(o => ({
+      ...o,
+      bg: s.shape === o.id ? '#FFF7EE' : '#FFFFFF',
+      borderColor: s.shape === o.id ? '#F47216' : '#F0EBDF',
+      ...radio(s.shape === o.id),
+      onClick: () => { this.setState({ shape: o.id }); this.bump(); },
+    }));
+
+    const doughOptions = [
+      { id:'hefe', label:'Hefeteig', desc:'Locker & luftig', color:'#E8C177', emoji:'🍞' },
+      { id:'schoko', label:'Schokoladenteig', desc:'Reicher Kakao-Teig', color:'#6B4226', emoji:'🍫' },
+      { id:'vollkorn', label:'Vollkorn', desc:'Mit Vollkornmehl', color:'#C9A15E', emoji:'🌾' },
+      { id:'vegan', label:'Vegan-Teig', desc:'Pflanzlich, ohne Ei', color:'#F3E4C0', emoji:'🌿' },
+    ].map(o => ({ ...mk(o.id, o.label, o.color, s.dough, 'dough'), desc: o.desc, emoji: o.emoji, ...radio(s.dough === o.id) }));
+
+    const fillingOptions = [
+      { id:'ohne', label:'Ohne', desc:'Pur ohne Füllung', color:'#FFFFFF', swatchBorder:'2px dashed #d8cdbb', emoji:'🚫' },
+      { id:'vanille', label:'Vanillecreme', desc:'Cremig & süß', color:'#F5E1A4', swatchBorder:'none', emoji:'🍦' },
+      { id:'erdbeer', label:'Erdbeermarmelade', desc:'Fruchtig-fein', color:'#E23D6B', swatchBorder:'none', emoji:'🍓' },
+      { id:'schoko', label:'Schokolade', desc:'Zartschmelzend', color:'#4B2E1A', swatchBorder:'none', emoji:'🍫' },
+      { id:'karamell', label:'Karamell', desc:'Salzig-süß', color:'#C97B2E', swatchBorder:'none', emoji:'🍯' },
+    ].map(o => ({ ...mk(o.id, o.label, o.color, s.filling, 'filling'), swatchBorder: o.swatchBorder, desc: o.desc, emoji: o.emoji, ...radio(s.filling === o.id) }));
+
+    const icingOptions = [
+      { id:'orange', color:'#F47216' },
+      { id:'pink', color:'#D0006F' },
+      { id:'white', color:'#FFFFFF' },
+      { id:'choc', color:'#4B2E1A' },
+      { id:'mint', color:'#7FD1AE' },
+      { id:'lemon', color:'#F5D95E' },
+    ].map(o => ({
+      ...o,
+      border: s.icing === o.color ? '3px solid #2B2320' : (o.color === '#FFFFFF' ? '2px solid #e4d9c1' : 'none'),
+      shadow: s.icing === o.color ? '0 0 0 3px #F5F1E6, 0 0 0 5px #2B2320' : 'none',
+      onClick: () => { this.setState({ icing: o.color }); this.bump(); },
+    }));
+
+    const toppingOptions = [
+      { id:'streusel', label:'Streusel', color:'#F47216' },
+      { id:'schoko', label:'Schokostückchen', color:'#4B2E1A' },
+      { id:'kokos', label:'Kokosraspeln', color:'#F5F1E6' },
+      { id:'nuesse', label:'Nüsse', color:'#B98650' },
+      { id:'puder', label:'Puderzucker', color:'#FFFFFF' },
+    ].map(o => {
+      const active = s.toppings.includes(o.id);
+      return {
+        ...o,
+        bg: active ? '#FFF7EE' : '#FFFFFF',
+        borderColor: active ? '#F47216' : '#F0EBDF',
+        onClick: () => { this.setState(st => ({ toppings: st.toppings.includes(o.id) ? st.toppings.filter(t => t !== o.id) : [...st.toppings, o.id] })); this.bump(); },
+      };
+    });
+
+    const fillingPrice = s.filling !== 'ohne' ? 0.4 : 0;
+    const price = 3.2 + toppingOptions.filter(t => s.toppings.includes(t.id)).length * 0.3 + fillingPrice + (s.vegan ? 0.5 : 0) + (s.glutenfrei ? 0.5 : 0);
+
+    const doughColorMap = { hefe: '#E8C177', schoko: '#6B4226', vollkorn: '#C9A15E', vegan: '#F3E4C0' };
+    const shapeLabelMap = { classic: 'Klassisch rund', twist: 'Ring mit Twist', bar: 'Länglich / Bar', mini: 'Mini-Donuts' };
+    const doughLabelMap = { hefe: 'Hefeteig', schoko: 'Schokoladenteig', vollkorn: 'Vollkorn', vegan: 'Vegan-Teig' };
+    const fillingLabelMap = { ohne: 'Ohne Füllung', vanille: 'Vanillecreme', erdbeer: 'Erdbeermarmelade', schoko: 'Schokolade', karamell: 'Karamell' };
+    const previewDoughColor = doughColorMap[s.dough];
+    const icingNameMap = { '#F47216':'Orange', '#D0006F':'Magenta', '#FFFFFF':'Weiß', '#4B2E1A':'Schoko', '#7FD1AE':'Minze', '#F5D95E':'Zitrone' };
+    const toppingLabelMap = { streusel:'Streusel', schoko:'Schokostückchen', kokos:'Kokosraspeln', nuesse:'Nüsse', puder:'Puderzucker' };
+
+    const sprinklePool = [
+      { top: '18%', left: '30%', rot: '20deg' }, { top: '25%', left: '62%', rot: '-30deg' },
+      { top: '55%', left: '20%', rot: '10deg' }, { top: '60%', left: '70%', rot: '45deg' },
+      { top: '40%', left: '45%', rot: '-10deg' }, { top: '70%', left: '48%', rot: '60deg' },
+    ];
+    const sprinkleColorMap = { streusel: '#F47216', schoko: '#4B2E1A', kokos: '#FFFFFF', nuesse: '#B98650', puder: '#FFFFFF' };
+    const previewSprinkles = s.toppings.slice(0, 6).map((id, i) => ({ ...sprinklePool[i % sprinklePool.length], color: sprinkleColorMap[id] || '#F47216' }));
+
+    const selectionChips = [
+      { label: shapeLabelMap[s.shape], color: '#F4A62A', border: 'none' },
+      { label: doughLabelMap[s.dough], color: previewDoughColor, border: 'none' },
+      { label: fillingLabelMap[s.filling], color: fillingOptions.find(f => f.id === s.filling).color, border: s.filling === 'ohne' ? '2px dashed #d8cdbb' : 'none' },
+      { label: 'Icing', color: s.icing, border: s.icing === '#FFFFFF' ? '2px solid #e4d9c1' : 'none' },
+      ...toppingOptions.filter(t => s.toppings.includes(t.id)).map(t => ({ label: t.label, color: t.color, border: 'none' })),
+      ...(s.vegan ? [{ label: 'Vegan', color: '#4c8b5f', border: 'none' }] : []),
+      ...(s.glutenfrei ? [{ label: 'Glutenfrei', color: '#4c8b5f', border: 'none' }] : []),
+    ];
+
+    return {
+      previewIsRound: s.shape === 'classic' || s.shape === 'twist',
+      previewIsBar: s.shape === 'bar',
+      previewIsMini: s.shape === 'mini',
+      previewHasTwist: s.shape === 'twist',
+      previewIcingColor: s.icing,
+      previewDoughColor,
+      previewSprinkles,
+      previewMinis: [0, 1, 2].map(i => ({ color: s.icing, doughColor: previewDoughColor })),
+      selectionChips,
+      formSummary: shapeLabelMap[s.shape],
+      teigSummary: doughLabelMap[s.dough],
+      fuellungSummary: fillingLabelMap[s.filling],
+      icingSummary: (icingNameMap[s.icing] || 'Individuell') + ' · Glanz ' + s.gloss + '%',
+      toppingsSummary: s.toppings.length ? s.toppings.map(id => toppingLabelMap[id]).join(', ') : 'Keine Toppings',
+      diaetSummary: (s.vegan || s.glutenfrei) ? [s.vegan && 'Vegan', s.glutenfrei && 'Glutenfrei'].filter(Boolean).join(' · ') : 'Keine Filter',
+      openForm: s.openSection === 'form', openTeig: s.openSection === 'teig', openFuellung: s.openSection === 'fuellung', openIcing: s.openSection === 'icing', openToppings: s.openSection === 'toppings', openDiaet: s.openSection === 'diaet',
+      formChevron: this.chevron(s.openSection === 'form'), teigChevron: this.chevron(s.openSection === 'teig'), fuellungChevron: this.chevron(s.openSection === 'fuellung'), icingChevron: this.chevron(s.openSection === 'icing'), toppingsChevron: this.chevron(s.openSection === 'toppings'), diaetChevron: this.chevron(s.openSection === 'diaet'),
+      toggleForm: () => this.toggle('form'), toggleTeig: () => this.toggle('teig'), toggleFuellung: () => this.toggle('fuellung'), toggleIcing: () => this.toggle('icing'), toggleToppings: () => this.toggle('toppings'), toggleDiaet: () => this.toggle('diaet'),
+      shapeOptions, doughOptions, fillingOptions, icingOptions, toppingOptions,
+      glossValue: s.gloss,
+      onGlossChange: (e) => this.setState({ gloss: Number(e.target.value) }),
+      veganTrack: s.vegan ? '#F47216' : '#e4d9c1',
+      veganKnobLeft: s.vegan ? '22px' : '2px',
+      glutenTrack: s.glutenfrei ? '#F47216' : '#e4d9c1',
+      glutenKnobLeft: s.glutenfrei ? '22px' : '2px',
+      toggleVegan: () => { this.setState(st => ({ vegan: !st.vegan })); this.bump(); },
+      toggleGlutenfrei: () => { this.setState(st => ({ glutenfrei: !st.glutenfrei })); this.bump(); },
+      priceLabel: '€' + price.toFixed(2),
+      isLoading: s.isLoading,
+      notLoading: !s.isLoading,
+      previewAnimStyle: s.bounceTick > 0 ? ('animation:' + (s.bounceTick % 2 === 0 ? 'donutBounceB' : 'donutBounceA') + ' 350ms ease;') : '',
+      onAddToCollection: () => this.addToCollection(),
+      confettiParticles: s.confettiActive ? [
+        { left: '14%', color: '#F47216', delay: '0ms' },
+        { left: '30%', color: '#D0006F', delay: '60ms' },
+        { left: '48%', color: '#F5D95E', delay: '20ms' },
+        { left: '64%', color: '#4B2E1A', delay: '90ms' },
+        { left: '78%', color: '#7FD1AE', delay: '40ms' },
+        { left: '90%', color: '#F47216', delay: '110ms' },
+      ] : [],
+      toastOpacity: s.toastActive ? 1 : 0,
+      toastBottom: s.toastActive ? '108px' : '92px',
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,10 +1,13 @@
 import * as THREE from 'three';
+import { watch } from 'vue';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { loadDonut } from './donut';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { PMREMGenerator } from 'three';
 import GUI from 'lil-gui';
 import { setupLightGUI, setupMaterialGUI } from './gui';
+import { donutConfig, getDoughHex, getIcingHex, getIcingRoughness } from '../state/donutConfig';
+import { applyShape, applyFilling, applyToppings } from './placeholders';
 
 export function initScene(canvas: HTMLCanvasElement) {
   const scene = new THREE.Scene();
@@ -49,6 +52,8 @@ export function initScene(canvas: HTMLCanvasElement) {
 
   let disposed = false;
   let animationId: number;
+  let stopMaterialWatch: (() => void) | null = null;
+  let stopPlaceholderWatch: (() => void) | null = null;
 
   loadDonut().then(({ root, donutMesh, icingMesh }) => {
     if (disposed) return;
@@ -60,19 +65,48 @@ export function initScene(canvas: HTMLCanvasElement) {
     const center = box.getCenter(new THREE.Vector3());
     root.position.sub(center);
 
-
     if (donutMesh) {
       const donutMat = donutMesh.material as THREE.MeshStandardMaterial;
-      donutMat.color.set(0xd79a5e);
       donutMat.metalness = 1;
       donutMat.roughness = 1;
     }
     if (icingMesh) {
       const icingMat = icingMesh.material as THREE.MeshStandardMaterial;
-      icingMat.color.set(0xff8499);
       icingMat.metalness = 1;
-      icingMat.roughness = .7;
     }
+
+    // Farbe & Glanzgrad kommen aus dem Konfigurator-Store, nicht mehr hart codiert
+    function applyMaterialsFromConfig() {
+      if (donutMesh) {
+        (donutMesh.material as THREE.MeshStandardMaterial).color.set(getDoughHex());
+      }
+      if (icingMesh) {
+        const icingMat = icingMesh.material as THREE.MeshStandardMaterial;
+        icingMat.color.set(getIcingHex());
+        icingMat.roughness = getIcingRoughness();
+      }
+    }
+    applyMaterialsFromConfig();
+    stopMaterialWatch = watch(
+      () => [donutConfig.doughId, donutConfig.icingColorId, donutConfig.glossValue] as const,
+      applyMaterialsFromConfig
+    );
+
+    // Form, Füllung & Toppings haben im aktuellen Modell noch keine Meshes -
+    // Anwendung läuft bewusst über Platzhalter-Funktionen (siehe three/placeholders.ts),
+    // damit die State -> 3D-Update-Pipeline schon steht, sobald die Meshes ergänzt werden.
+    stopPlaceholderWatch = watch(
+      () => ({
+        shapeId: donutConfig.shapeId,
+        fillingId: donutConfig.fillingId,
+        toppingIds: [...donutConfig.toppingIds],
+      }),
+      (cfg) => {
+        applyShape(cfg.shapeId);
+        applyFilling(cfg.fillingId);
+        applyToppings(cfg.toppingIds);
+      }
+    );
 
     // GUI für Materialien erst HIER, weil Meshes jetzt garantiert existieren
     setupMaterialGUI(gui, donutMesh, icingMesh);
@@ -100,6 +134,8 @@ export function initScene(canvas: HTMLCanvasElement) {
     disposed = true;
     cancelAnimationFrame(animationId);
     window.removeEventListener('resize', handleResize);
+    stopMaterialWatch?.();
+    stopPlaceholderWatch?.();
     controls.dispose();
     renderer.dispose();
     gui.destroy();   // wichtig: GUI-DOM-Element und Listener sauber entfernen
