@@ -1,3 +1,13 @@
+:root {
+  /* Höhe, die die fixe CollectionBar unten beansprucht - wird von App.vue
+     (Layout-Padding) und ConfiguratorPanel.vue (max-height) genutzt, damit
+     nichts unter der Bar verschwindet. */
+  --collection-bar-space: 148px;
+  /* Natürliche Höhe der TopNavigation (nicht fixiert, normaler Fluss) - wird
+     von ConfiguratorPanel.vue (max-height) berücksichtigt. */
+  --nav-space: 100px;
+}
+
 html, body, #app {
   margin: 0;
   padding: 0;
@@ -5,9 +15,15 @@ html, body, #app {
   height: 100%;
 }
 
+#app {
+  display: flex;
+  flex-direction: column;
+}
+
 body {
   overflow-y: auto;
   overflow-x: hidden;
+  background: #f5f1e6;
 }
 
 canvas {

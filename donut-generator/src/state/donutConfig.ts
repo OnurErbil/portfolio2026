@@ -5,9 +5,8 @@ export interface IconCardOption {
   label: string;
   desc: string;
   icon: string;
-}
-
-export interface DoughOption extends IconCardOption {
+  // Rein dekorativ für die Auswahl-Zusammenfassung (Chips in der CollectionBar) -
+  // hat keinen Bezug zur 3D-Szene bei Form/Füllung (siehe Platzhalter-Hinweis unten).
   hex: number;
 }
 
@@ -25,7 +24,7 @@ export interface ToppingOption {
 
 // Teig & Icing sind auf echte Meshes ('donut' / 'icing') im donut.glb gemappt,
 // siehe src/three/main.ts.
-export const doughOptions: DoughOption[] = [
+export const doughOptions: IconCardOption[] = [
   { id: 'hefe', label: 'Hefeteig', desc: 'Locker & luftig', icon: '🍞', hex: 0xe8c177 },
   { id: 'schoko', label: 'Schokoladenteig', desc: 'Reicher Kakao-Teig', icon: '🍫', hex: 0x6b4226 },
   { id: 'vollkorn', label: 'Vollkorn', desc: 'Mit Vollkornmehl', icon: '🌾', hex: 0xc9a15e },
@@ -49,18 +48,18 @@ export const icingColors: ColorOption[] = [
 // die Anwendung passiert hinter den Platzhalter-Funktionen in
 // src/three/placeholders.ts, die befüllt werden, sobald die Meshes da sind.
 export const shapeOptions: IconCardOption[] = [
-  { id: 'classic', label: 'Klassisch rund', desc: 'Der Original-Ring', icon: '🍩' },
-  { id: 'twist', label: 'Ring mit Twist', desc: 'Gedrehte Form', icon: '🥨' },
-  { id: 'bar', label: 'Länglich / Bar', desc: 'Long John Style', icon: '🥖' },
-  { id: 'mini', label: 'Mini-Donuts', desc: '3er-Set', icon: '🍩' },
+  { id: 'classic', label: 'Klassisch rund', desc: 'Der Original-Ring', icon: '🍩', hex: 0xf4a62a },
+  { id: 'twist', label: 'Ring mit Twist', desc: 'Gedrehte Form', icon: '🥨', hex: 0xd0006f },
+  { id: 'bar', label: 'Länglich / Bar', desc: 'Long John Style', icon: '🥖', hex: 0x8a5a2b },
+  { id: 'mini', label: 'Mini-Donuts', desc: '3er-Set', icon: '🍩', hex: 0xf4a62a },
 ];
 
 export const fillingOptions: IconCardOption[] = [
-  { id: 'ohne', label: 'Ohne', desc: 'Pur ohne Füllung', icon: '🚫' },
-  { id: 'vanille', label: 'Vanillecreme', desc: 'Cremig & süß', icon: '🍦' },
-  { id: 'erdbeer', label: 'Erdbeermarmelade', desc: 'Fruchtig-fein', icon: '🍓' },
-  { id: 'schoko', label: 'Schokolade', desc: 'Zartschmelzend', icon: '🍫' },
-  { id: 'karamell', label: 'Karamell', desc: 'Salzig-süß', icon: '🍯' },
+  { id: 'ohne', label: 'Ohne', desc: 'Pur ohne Füllung', icon: '🚫', hex: 0xffffff },
+  { id: 'vanille', label: 'Vanillecreme', desc: 'Cremig & süß', icon: '🍦', hex: 0xf5e1a4 },
+  { id: 'erdbeer', label: 'Erdbeermarmelade', desc: 'Fruchtig-fein', icon: '🍓', hex: 0xe23d6b },
+  { id: 'schoko', label: 'Schokolade', desc: 'Zartschmelzend', icon: '🍫', hex: 0x4b2e1a },
+  { id: 'karamell', label: 'Karamell', desc: 'Salzig-süß', icon: '🍯', hex: 0xc97b2e },
 ];
 
 export const toppingOptions: ToppingOption[] = [
@@ -102,4 +101,17 @@ export function getIcingHex(): number {
 // Glanzgrad 0-100 -> Roughness 1-0.1 (0% = ganz matt, 100% = fast spiegelnd)
 export function getIcingRoughness(): number {
   return 1 - (donutConfig.glossValue / 100) * 0.9;
+}
+
+const BASE_PRICE = 3.2;
+const FILLING_PRICE = 0.4;
+const TOPPING_PRICE = 0.3;
+const DIET_SURCHARGE = 0.5;
+
+export function getPrice(): number {
+  let price = BASE_PRICE + donutConfig.toppingIds.length * TOPPING_PRICE;
+  if (donutConfig.fillingId !== 'ohne') price += FILLING_PRICE;
+  if (donutConfig.vegan) price += DIET_SURCHARGE;
+  if (donutConfig.glutenfrei) price += DIET_SURCHARGE;
+  return price;
 }

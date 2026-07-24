@@ -185,7 +185,7 @@ const dietSummary = computed(() => {
   box-shadow: 0 10px 30px rgba(43, 35, 32, 0.1);
   width: 380px;
   max-width: calc(100vw - 48px);
-  max-height: calc(100vh - 48px);
+  max-height: calc(100vh - 48px - var(--collection-bar-space) - var(--nav-space));
   align-self: flex-start;
   display: flex;
   flex-direction: column;

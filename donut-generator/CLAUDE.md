@@ -25,7 +25,9 @@ donut-generator/
 ├─ src/
 │  ├─ assets/
 │  ├─ components/
+│  │  ├─ TopNavigation.vue        # Pill-Nav mit Logo, Links, CTA, Mobile-Hamburger-Menü
 │  │  ├─ ConfiguratorPanel.vue    # Accordion-Panel, komponiert die configurator/-Bausteine
+│  │  ├─ CollectionBar.vue        # untere Leiste: Auswahl-Chips, Preis, "Zur Sammlung hinzufügen"
 │  │  └─ configurator/
 │  │     ├─ AccordionSection.vue  # Ein-/Zuklapp-Sektion (WAI-ARIA Disclosure-Pattern)
 │  │     ├─ OptionCardGroup.vue   # Icon-Card-Radiogroup (Form, Teig, Füllung)
@@ -35,7 +37,8 @@ donut-generator/
 │  ├─ composables/
 │  │  └─ useRadioGroupKeyboard.ts # Roving Tabindex + Pfeiltasten-Navigation
 │  ├─ state/
-│  │  └─ donutConfig.ts     # zentraler reactive Store für den Konfigurationsstate
+│  │  ├─ donutConfig.ts     # zentraler reactive Store für den Konfigurationsstate
+│  │  └─ collection.ts      # "Sammlung" (localStorage) - noch ohne Galerie-Seite
 │  ├─ three/
 │  │  ├─ main.ts            # initScene() – Szenen-Setup, Lifecycle
 │  │  ├─ donut.ts           # loadDonut() – GLTF laden, Meshes identifizieren
@@ -67,8 +70,31 @@ gelisteten Punkte bestätigt**, werden sie hier unter „Bereits umgesetzt" erg�
 nicht-doppelte Quelle für den bestätigten Ist-Stand – Claude Code soll nichts eigenständig
 von „Noch offen" nach „Bereits umgesetzt" verschieben, ohne dass diese Bestätigung erfolgt ist.
 
-**Noch offen / nächste Schritte:**
+Bereits umgesetzt:
+- Vite + Vue3 + TS Projekt aufgesetzt
+- Three.js-Szene sauber in Vue-Komponente eingebunden (`App.vue`): Canvas-Ref, `initScene()` in `onMounted`, Cleanup-Funktion in `onUnmounted`
+- Three.js-Szene mit PerspectiveCamera, WebGLRenderer, OrbitControls (Damping aktiviert, Zoom-Range 0.5–3)
+- Environment Lighting via `PMREMGenerator` + `RoomEnvironment` für realistische Reflexionen
+- Ambient + Directional Light, aktuell über lil-gui einstellbar
+- Eigenes `donut.glb`-Modell wird per `GLTFLoader` geladen
+- Meshes werden per Namenskonvention erkannt (siehe unten) und Material wird geklont, um Shared-Material-Bugs zu vermeiden
+- Erste Farbwerte für Donut- und Icing-Material gesetzt (`metalness`/`roughness`/`color`)
+- Cleanup-Pattern vorhanden: `initScene()` gibt eine Dispose-Funktion zurück (Animation-Frame canceln, Event-Listener entfernen, Controls/Renderer/GUI disposen)
+- `HelloWorld.vue` (Vite-Boilerplate) entfernt
+- Zentraler reactive Store (`src/state/donutConfig.ts`, bewusst kein Pinia) für den gesamten Konfigurationsstate: Form, Teig, Füllung, Icing-Farbe, Glanzgrad, Toppings, Ernährungsfilter
+- Echte Konfigurator-UI (`ConfiguratorPanel.vue`) als Accordion nach Vorbild von @context Konfigurator Seite.dc.html: Sektionen Form, Teig, Füllung, Icing/Glasur (inkl. Glanzgrad-Slider), Toppings, Ernährungsfilter – mit Icons, Ein-/Zuklapp-Funktion und Live-Zusammenfassung je Sektion
+- Barrierefreiheit (BFSG): WAI-ARIA Accordion-/Radiogroup-/Switch-Patterns, Roving Tabindex + Pfeiltasten-Navigation in den Auswahlgruppen, sichtbare Fokus-Ringe, geprüfter Farbkontrast (min. 3:1 bei UI-Komponenten)
+- Form, Füllung und Toppings laufen bewusst über Platzhalter-Funktionen (`src/three/placeholders.ts`), da `donut.glb` dafür noch keine Meshes enthält – Logik wird nachgetragen, sobald die Meshes ergänzt sind
+- `CollectionBar.vue`: untere Leiste mit Auswahl-Chips, Live-Preis (`getPrice()` in `src/state/donutConfig.ts`) und „Zur Sammlung hinzufügen"-Button (inkl. Konfetti/Toast), nach Vorbild von @context Konfigurator Seite.dc.html
+- „Sammlung" wird in `src/state/collection.ts` als echter Snapshot der Auswahl in `localStorage` persistiert (kein reiner Animations-Fake) – eine Galerie-Seite dafür gibt es aber noch nicht, siehe „Noch offen"
+- Details, gefundene/behobene Bugs (u. a. Kontrast-Fixes) und Verifikationsschritte zu den obigen Punkten: siehe [`docs/PROGRESS.md`](docs/PROGRESS.md)
 
+**Noch offen / nächste Schritte:**
+- ⏳ Wartet auf Bestätigung (siehe [`docs/PROGRESS.md`](docs/PROGRESS.md) für Details): `TopNavigation.vue` nach Vorbild von @context Top Navigation.dc.html – Pill-Nav mit Logo, Links (inkl. Placeholder-Hrefs für die drei künftigen Unterseiten), CTA-Button, responsivem Hamburger-Menü
+- Galerie-Seite „Meine Kreationen" (siehe @context Meine Kreationen.dc.html) – die Sammlung wird bereits in `localStorage` persistiert (`src/state/collection.ts`), es gibt aber noch keine Seite/Route, die sie anzeigt
+- Unterseiten „Inspiration" und „Über uns" existieren noch nicht (Nav-Links sind bewusst Anker-Platzhalter, siehe `TopNavigation.vue`); es gibt auch noch keinen Router (kein vue-router im Projekt)
+- Kein responsives Layout für den restlichen App-Body (Panel/Canvas/CollectionBar) – nur `TopNavigation.vue` ist bereits eigenständig responsiv (Hamburger-Menü < 1024px)
+- Deployment-Pipeline (Ziel: IONOS 1&1, manuelles FTP-Deployment, `base`-Pfad in `vite.config.ts` beachten)
 
 ## Wichtige Konventionen im Code
 
