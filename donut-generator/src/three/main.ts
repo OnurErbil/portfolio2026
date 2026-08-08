@@ -7,7 +7,8 @@ import { PMREMGenerator } from 'three';
 import GUI from 'lil-gui';
 import { setupLightGUI, setupMaterialGUI } from './gui';
 import { donutConfig, getDoughHex, getIcingHex, getIcingRoughness } from '../state/donutConfig';
-import { applyShape, applyFilling, applyToppings } from './placeholders';
+import { applyShape, applyFilling } from './placeholders';
+import { createToppings, type ToppingsController } from './toppings';
 
 export function initScene(canvas: HTMLCanvasElement) {
   const scene = new THREE.Scene();
@@ -54,6 +55,8 @@ export function initScene(canvas: HTMLCanvasElement) {
   let animationId: number;
   let stopMaterialWatch: (() => void) | null = null;
   let stopPlaceholderWatch: (() => void) | null = null;
+  let stopToppingWatch: (() => void) | null = null;
+  let toppings: ToppingsController | null = null;
 
   loadDonut().then(({ root, donutMesh, icingMesh }) => {
     if (disposed) return;
@@ -92,19 +95,28 @@ export function initScene(canvas: HTMLCanvasElement) {
       applyMaterialsFromConfig
     );
 
-    // Form, Füllung & Toppings haben im aktuellen Modell noch keine Meshes -
-    // Anwendung läuft bewusst über Platzhalter-Funktionen (siehe three/placeholders.ts),
+    // Toppings werden zur Laufzeit als Geometrie auf die Glasur gestreut
+    // (siehe three/toppings.ts) - dafür braucht es kein Mesh im GLB.
+    if (icingMesh) {
+      toppings = createToppings(icingMesh);
+      toppings.update(donutConfig.toppingIds);
+      stopToppingWatch = watch(
+        () => [...donutConfig.toppingIds],
+        (toppingIds) => toppings?.update(toppingIds)
+      );
+    }
+
+    // Form & Füllung haben im aktuellen Modell noch keine Meshes - Anwendung
+    // läuft bewusst über Platzhalter-Funktionen (siehe three/placeholders.ts),
     // damit die State -> 3D-Update-Pipeline schon steht, sobald die Meshes ergänzt werden.
     stopPlaceholderWatch = watch(
       () => ({
         shapeId: donutConfig.shapeId,
         fillingId: donutConfig.fillingId,
-        toppingIds: [...donutConfig.toppingIds],
       }),
       (cfg) => {
         applyShape(cfg.shapeId);
         applyFilling(cfg.fillingId);
-        applyToppings(cfg.toppingIds);
       }
     );
 
@@ -136,6 +148,8 @@ export function initScene(canvas: HTMLCanvasElement) {
     window.removeEventListener('resize', handleResize);
     stopMaterialWatch?.();
     stopPlaceholderWatch?.();
+    stopToppingWatch?.();
+    toppings?.dispose();
     controls.dispose();
     renderer.dispose();
     gui.destroy();   // wichtig: GUI-DOM-Element und Listener sauber entfernen

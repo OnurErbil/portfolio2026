@@ -4,6 +4,9 @@
 // und die UI sind bereits voll verdrahtet - sobald die entsprechenden Meshes im
 // Blender-Export ergänzt werden, hier die Material-/Geometrie-Logik einbauen,
 // analog zu applyMaterialsFromConfig() in src/three/main.ts.
+//
+// Toppings sind kein Platzhalter mehr: die werden in src/three/toppings.ts zur
+// Laufzeit als Geometrie erzeugt und brauchen kein Mesh im GLB.
 
 export function applyShape(_shapeId: string): void {
   // TODO: Form-Mesh im GLB noch nicht vorhanden.
@@ -11,8 +14,4 @@ export function applyShape(_shapeId: string): void {
 
 export function applyFilling(_fillingId: string): void {
   // TODO: Füllungs-Mesh im GLB noch nicht vorhanden.
-}
-
-export function applyToppings(_toppingIds: string[]): void {
-  // TODO: Topping-Meshes im GLB noch nicht vorhanden.
 }

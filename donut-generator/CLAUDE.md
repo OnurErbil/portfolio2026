@@ -42,7 +42,8 @@ donut-generator/
 │  ├─ three/
 │  │  ├─ main.ts            # initScene() – Szenen-Setup, Lifecycle
 │  │  ├─ donut.ts           # loadDonut() – GLTF laden, Meshes identifizieren
-│  │  ├─ placeholders.ts    # No-op-Funktionen für Form/Füllung/Toppings (Meshes fehlen noch)
+│  │  ├─ toppings.ts        # Streusel (Kapseln) & Schokostückchen (Kugeln) als InstancedMesh
+│  │  ├─ placeholders.ts    # No-op-Funktionen für Form/Füllung (Meshes fehlen noch)
 │  │  └─ gui.ts             # lil-gui Debug-Panels (temporär)
 │  ├─ utils/
 │  │  └─ color.ts           # hexToCss-Helper
@@ -84,13 +85,15 @@ Bereits umgesetzt:
 - Zentraler reactive Store (`src/state/donutConfig.ts`, bewusst kein Pinia) für den gesamten Konfigurationsstate: Form, Teig, Füllung, Icing-Farbe, Glanzgrad, Toppings, Ernährungsfilter
 - Echte Konfigurator-UI (`ConfiguratorPanel.vue`) als Accordion nach Vorbild von @context Konfigurator Seite.dc.html: Sektionen Form, Teig, Füllung, Icing/Glasur (inkl. Glanzgrad-Slider), Toppings, Ernährungsfilter – mit Icons, Ein-/Zuklapp-Funktion und Live-Zusammenfassung je Sektion
 - Barrierefreiheit (BFSG): WAI-ARIA Accordion-/Radiogroup-/Switch-Patterns, Roving Tabindex + Pfeiltasten-Navigation in den Auswahlgruppen, sichtbare Fokus-Ringe, geprüfter Farbkontrast (min. 3:1 bei UI-Komponenten)
-- Form, Füllung und Toppings laufen bewusst über Platzhalter-Funktionen (`src/three/placeholders.ts`), da `donut.glb` dafür noch keine Meshes enthält – Logik wird nachgetragen, sobald die Meshes ergänzt sind
+- Form und Füllung laufen bewusst über Platzhalter-Funktionen (`src/three/placeholders.ts`), da `donut.glb` dafür noch keine Meshes enthält – Logik wird nachgetragen, sobald die Meshes ergänzt sind
+- Form-Auswahl vorerst bewusst nur „Klassisch rund" – weitere Formen (Ring mit Twist, Länglich/Bar, Mini-Donuts, siehe @context Konfigurator Seite.dc.html) kommen evtl. später dazu
+- Toppings werden echt in 3D erzeugt (`src/three/toppings.ts`, kein Platzhalter): Streusel als Kapseln (bunt gemischt: Weiß/Blau/Rot/Gelb/Grün via `InstancedMesh.setColorAt`), Schokostückchen als Kugeln. Platzierung per `MeshSurfaceSampler` auf der Glasur-Oberseite mit Mindestabstand und festem Seed. Gesamtzahl ist fix (60): eine Sorte = 60, beide Sorten = je 30, also keine Verdopplung. Übrige Topping-Optionen (Kokos, Nüsse, Puderzucker) entfernt
 - `CollectionBar.vue`: untere Leiste mit Auswahl-Chips, Live-Preis (`getPrice()` in `src/state/donutConfig.ts`) und „Zur Sammlung hinzufügen"-Button (inkl. Konfetti/Toast), nach Vorbild von @context Konfigurator Seite.dc.html
 - „Sammlung" wird in `src/state/collection.ts` als echter Snapshot der Auswahl in `localStorage` persistiert (kein reiner Animations-Fake) – eine Galerie-Seite dafür gibt es aber noch nicht, siehe „Noch offen"
+- `TopNavigation.vue` nach Vorbild von @context Top Navigation.dc.html: Pill-Nav mit Logo, Links (inkl. Placeholder-Hrefs `#meine-kreationen`/`#inspiration`/`#ueber-uns` für die drei künftigen Unterseiten), CTA-Button, responsivem Hamburger-Menü (< 1024px) – bereits eigenständig responsiv, unabhängig vom Rest des App-Body
 - Details, gefundene/behobene Bugs (u. a. Kontrast-Fixes) und Verifikationsschritte zu den obigen Punkten: siehe [`docs/PROGRESS.md`](docs/PROGRESS.md)
 
 **Noch offen / nächste Schritte:**
-- ⏳ Wartet auf Bestätigung (siehe [`docs/PROGRESS.md`](docs/PROGRESS.md) für Details): `TopNavigation.vue` nach Vorbild von @context Top Navigation.dc.html – Pill-Nav mit Logo, Links (inkl. Placeholder-Hrefs für die drei künftigen Unterseiten), CTA-Button, responsivem Hamburger-Menü
 - Galerie-Seite „Meine Kreationen" (siehe @context Meine Kreationen.dc.html) – die Sammlung wird bereits in `localStorage` persistiert (`src/state/collection.ts`), es gibt aber noch keine Seite/Route, die sie anzeigt
 - Unterseiten „Inspiration" und „Über uns" existieren noch nicht (Nav-Links sind bewusst Anker-Platzhalter, siehe `TopNavigation.vue`); es gibt auch noch keinen Router (kein vue-router im Projekt)
 - Kein responsives Layout für den restlichen App-Body (Panel/Canvas/CollectionBar) – nur `TopNavigation.vue` ist bereits eigenständig responsiv (Hamburger-Menü < 1024px)

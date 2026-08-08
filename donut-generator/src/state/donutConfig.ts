@@ -42,16 +42,17 @@ export const icingColors: ColorOption[] = [
 
 // --- Platzhalter-Bereiche ---
 // Im aktuellen donut.glb existieren nur die Meshes 'donut' und 'icing' (siehe
-// Mesh-Namenskonvention in CLAUDE.md). Form, Füllung und Toppings haben noch
-// keine Entsprechung im Modell. Die UI unten ist voll bedienbar und der State
-// wird gepflegt, wirkt sich aber bewusst noch nicht auf die 3D-Szene aus -
-// die Anwendung passiert hinter den Platzhalter-Funktionen in
+// Mesh-Namenskonvention in CLAUDE.md). Form und Füllung haben noch keine
+// Entsprechung im Modell. Die UI dafür ist voll bedienbar und der State wird
+// gepflegt, wirkt sich aber bewusst noch nicht auf die 3D-Szene aus - die
+// Anwendung passiert hinter den Platzhalter-Funktionen in
 // src/three/placeholders.ts, die befüllt werden, sobald die Meshes da sind.
+// (Toppings sind kein Platzhalter mehr, siehe src/three/toppings.ts.)
+// Vorerst bewusst nur die klassische Form - weitere Formen (Ring mit Twist,
+// Länglich/Bar, Mini-Donuts, siehe context/Konfigurator Seite.dc.html) kommen
+// evtl. später dazu, sobald es dafür Meshes gibt.
 export const shapeOptions: IconCardOption[] = [
   { id: 'classic', label: 'Klassisch rund', desc: 'Der Original-Ring', icon: '🍩', hex: 0xf4a62a },
-  { id: 'twist', label: 'Ring mit Twist', desc: 'Gedrehte Form', icon: '🥨', hex: 0xd0006f },
-  { id: 'bar', label: 'Länglich / Bar', desc: 'Long John Style', icon: '🥖', hex: 0x8a5a2b },
-  { id: 'mini', label: 'Mini-Donuts', desc: '3er-Set', icon: '🍩', hex: 0xf4a62a },
 ];
 
 export const fillingOptions: IconCardOption[] = [
@@ -62,12 +63,14 @@ export const fillingOptions: IconCardOption[] = [
   { id: 'karamell', label: 'Karamell', desc: 'Salzig-süß', icon: '🍯', hex: 0xc97b2e },
 ];
 
+// Toppings werden echt in 3D generiert (src/three/toppings.ts) - vorerst nur die
+// beiden Sorten, für die es dort Geometrie gibt: Streusel (Kapseln) und
+// Schokostückchen (Kugeln). Der Hex-Wert hier ist die Farbe in der UI (Chip-Punkt);
+// im 3D gilt er nur für Schokostückchen - Streusel werden bunt gemischt eingefärbt
+// (Palette in src/three/toppings.ts).
 export const toppingOptions: ToppingOption[] = [
   { id: 'streusel', label: 'Streusel', hex: 0xf47216 },
   { id: 'schoko', label: 'Schokostückchen', hex: 0x4b2e1a },
-  { id: 'kokos', label: 'Kokosraspeln', hex: 0xf5f1e6 },
-  { id: 'nuesse', label: 'Nüsse', hex: 0xb98650 },
-  { id: 'puder', label: 'Puderzucker', hex: 0xffffff },
 ];
 
 export const donutConfig = reactive({

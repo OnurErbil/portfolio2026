@@ -1,7 +1,7 @@
 <template>
   <a class="skip-link" href="#konfigurator">Zum Hauptinhalt springen</a>
   <TopNavigation />
-  <main id="konfigurator" tabindex="-1" class="configurator-layout">
+  <main id="konfigurator" tabindex="-1" class="configurator-layout container">
     <ConfiguratorPanel />
     <div class="canvas-wrap">
       <canvas ref="canvasEl"></canvas>
@@ -72,10 +72,12 @@ onUnmounted(() => {
   min-width: 320px;
   min-height: 320px;
   position: relative;
+  border-radius: 24px;
 }
 
 .canvas-wrap canvas {
   position: absolute;
   inset: 0;
+  border-radius: 24px;
 }
 </style>
