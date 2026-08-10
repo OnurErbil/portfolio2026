@@ -24,13 +24,15 @@ donut-generator/
 │     └─ donut.glb          # selbst erstelltes 3D-Modell
 ├─ src/
 │  ├─ assets/
+│  │  └─ icons/                   # eigene SVG-Icons der Konfigurator-Sektionen
 │  ├─ components/
 │  │  ├─ TopNavigation.vue        # Pill-Nav mit Logo, Links, CTA, Mobile-Hamburger-Menü
 │  │  ├─ ConfiguratorPanel.vue    # Accordion-Panel, komponiert die configurator/-Bausteine
 │  │  ├─ CollectionBar.vue        # untere Leiste: Auswahl-Chips, Preis, "Zur Sammlung hinzufügen"
+│  │  ├─ StudioBackground.vue     # CSS-Studio-Hintergrund hinter dem Canvas (Raster, Glows, Schatten)
 │  │  └─ configurator/
 │  │     ├─ AccordionSection.vue  # Ein-/Zuklapp-Sektion (WAI-ARIA Disclosure-Pattern)
-│  │     ├─ OptionCardGroup.vue   # Icon-Card-Radiogroup (Form, Teig, Füllung)
+│  │     ├─ OptionCardGroup.vue   # Radiogroup mit Farbpunkt (Form, Teig, Füllung)
 │  │     ├─ ColorSwatchGroup.vue  # Farb-Swatch-Radiogroup (Icing)
 │  │     ├─ ToppingChipGroup.vue  # Mehrfachauswahl-Chips (Toppings)
 │  │     └─ SwitchToggle.vue      # An/Aus-Switch (Ernährungsfilter)
@@ -74,7 +76,7 @@ von „Noch offen" nach „Bereits umgesetzt" verschieben, ohne dass diese Best�
 Bereits umgesetzt:
 - Vite + Vue3 + TS Projekt aufgesetzt
 - Three.js-Szene sauber in Vue-Komponente eingebunden (`App.vue`): Canvas-Ref, `initScene()` in `onMounted`, Cleanup-Funktion in `onUnmounted`
-- Three.js-Szene mit PerspectiveCamera, WebGLRenderer, OrbitControls (Damping aktiviert, Zoom-Range 0.5–3)
+- Three.js-Szene mit PerspectiveCamera, WebGLRenderer, OrbitControls (Damping aktiviert, Zoom-Range 0.5–1.03, Startdistanz 1.03 = weitester erlaubter Blick)
 - Environment Lighting via `PMREMGenerator` + `RoomEnvironment` für realistische Reflexionen
 - Ambient + Directional Light, aktuell über lil-gui einstellbar
 - Eigenes `donut.glb`-Modell wird per `GLTFLoader` geladen
@@ -91,6 +93,10 @@ Bereits umgesetzt:
 - `CollectionBar.vue`: untere Leiste mit Auswahl-Chips, Live-Preis (`getPrice()` in `src/state/donutConfig.ts`) und „Zur Sammlung hinzufügen"-Button (inkl. Konfetti/Toast), nach Vorbild von @context Konfigurator Seite.dc.html
 - „Sammlung" wird in `src/state/collection.ts` als echter Snapshot der Auswahl in `localStorage` persistiert (kein reiner Animations-Fake) – eine Galerie-Seite dafür gibt es aber noch nicht, siehe „Noch offen"
 - `TopNavigation.vue` nach Vorbild von @context Top Navigation.dc.html: Pill-Nav mit Logo, Links (inkl. Placeholder-Hrefs `#meine-kreationen`/`#inspiration`/`#ueber-uns` für die drei künftigen Unterseiten), CTA-Button, responsivem Hamburger-Menü (< 1024px) – bereits eigenständig responsiv, unabhängig vom Rest des App-Body
+- Eigene SVG-Icons (`src/assets/icons/`) in den Accordion-Kopfzeilen des Konfigurators, zentriert in ihrer farbigen Kachel (unterschiedliche Seitenverhältnisse, daher `max-width`/`max-height` + `object-fit: contain` statt fester Größe). Die Sub-Icons in den geöffneten Sektionen sind bewusst nur noch farbige Punkte in der Optionsfarbe – das `icon`-Feld (Emoji) im Store ist dadurch entfallen
+- Glanzgrad-Regler zählt sichtbar 0–100 %, wirkt im 3D aber nur in einem gedämpften Band: `getIcingRoughness()` mappt den Wert auf Roughness ~0.91 (matt) bis ~0.55 (seidig), damit die Glasur nie zu spiegelnd wird
+- Kamera-Ordner im lil-gui (`setupCameraGUI()` in `src/three/gui.ts`): Regler für Distanz/Min-Distanz/Max-Distanz + Button, der die fertige `camera.position.set(...)`-Zeile in die Konsole loggt. Reines Debug-Tool, fällt mit lil-gui weg
+- Canvas ist transparent (`alpha: true` + `setClearColor(0x000000, 0)`, kein `scene.background`); der Hintergrund ist eine reine CSS-Ebene darunter (`StudioBackground.vue`): helles Creme `#fcf8ef`, perspektivisches Bodenraster über eine per `perspective()`/`rotateX()` gekippte Rasterebene, dezente Magenta-/Orange-Glows (5–6 %) und weicher Bodenschatten. Alles `pointer-events: none` + `aria-hidden`, damit OrbitControls unberührt bleibt. `scene.environment` (PMREM/RoomEnvironment) bleibt bestehen – das ist Beleuchtung, kein Hintergrund
 - Details, gefundene/behobene Bugs (u. a. Kontrast-Fixes) und Verifikationsschritte zu den obigen Punkten: siehe [`docs/PROGRESS.md`](docs/PROGRESS.md)
 
 **Noch offen / nächste Schritte:**
@@ -98,6 +104,9 @@ Bereits umgesetzt:
 - Unterseiten „Inspiration" und „Über uns" existieren noch nicht (Nav-Links sind bewusst Anker-Platzhalter, siehe `TopNavigation.vue`); es gibt auch noch keinen Router (kein vue-router im Projekt)
 - Kein responsives Layout für den restlichen App-Body (Panel/Canvas/CollectionBar) – nur `TopNavigation.vue` ist bereits eigenständig responsiv (Hamburger-Menü < 1024px)
 - Deployment-Pipeline (Ziel: IONOS 1&1, manuelles FTP-Deployment, `base`-Pfad in `vite.config.ts` beachten)
+- Finale Farben für den Konfigurator (die Icons sind mit `src/assets/icons/` gesetzt)
+- Donut Animation bei Interaktion mit den Konfigurator
+- Extra Option den User selbst den Donut zu besichtigen per Maus/Touch. Ansonsten läuft die vorgefertige Animation
 
 ## Wichtige Konventionen im Code
 

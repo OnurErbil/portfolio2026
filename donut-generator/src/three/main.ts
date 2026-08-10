@@ -5,14 +5,16 @@ import { loadDonut } from './donut';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { PMREMGenerator } from 'three';
 import GUI from 'lil-gui';
-import { setupLightGUI, setupMaterialGUI } from './gui';
+import { setupCameraGUI, setupLightGUI, setupMaterialGUI } from './gui';
 import { donutConfig, getDoughHex, getIcingHex, getIcingRoughness } from '../state/donutConfig';
 import { applyShape, applyFilling } from './placeholders';
 import { createToppings, type ToppingsController } from './toppings';
 
 export function initScene(canvas: HTMLCanvasElement) {
+  // Kein scene.background: der Hintergrund kommt als CSS-Ebene hinter dem Canvas
+  // (src/components/StudioBackground.vue). scene.environment bleibt davon
+  // unberührt - das ist Beleuchtung, kein sichtbarer Hintergrund.
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x1a1a1a);
 
   const camera = new THREE.PerspectiveCamera(
     50,
@@ -20,10 +22,14 @@ export function initScene(canvas: HTMLCanvasElement) {
     0.1,
     100
   );
-  camera.position.set(0, 1, 1.5);  
+  // Gleicher Blickwinkel wie zuvor (Richtung 0/1/1.5), nur auf Distanz 1.03
+  // skaliert - das ist zugleich maxDistance, der Donut startet also im
+  // weitesten erlaubten Blick.
+  camera.position.set(0, 0.571, 0.857);
   camera.lookAt(0, 0, 0);
 
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setClearColor(0x000000, 0);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
 
@@ -38,7 +44,7 @@ export function initScene(canvas: HTMLCanvasElement) {
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
   controls.minDistance = 0.5;
-  controls.maxDistance = 3;
+  controls.maxDistance = 1.03;
   controls.target.set(0, 0, 0);
   controls.update();
 
@@ -50,6 +56,7 @@ export function initScene(canvas: HTMLCanvasElement) {
   // --- GUI Setup ---
   const gui = new GUI();
   setupLightGUI(gui, ambient, directional);
+  const syncCameraGUI = setupCameraGUI(gui, camera, controls);
 
   let disposed = false;
   let animationId: number;
@@ -138,6 +145,7 @@ export function initScene(canvas: HTMLCanvasElement) {
   function animate() {
     animationId = requestAnimationFrame(animate);
     controls.update();
+    syncCameraGUI();
     renderer.render(scene, camera);
   }
   animate();

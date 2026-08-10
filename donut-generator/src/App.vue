@@ -3,7 +3,10 @@
   <TopNavigation />
   <main id="konfigurator" tabindex="-1" class="configurator-layout container">
     <ConfiguratorPanel />
+    <!-- Reihenfolge = Ebenen: Studio-Hintergrund (CSS) unten, Three.js-Canvas
+         transparent darüber. Die UI liegt komplett außerhalb dieses Wrappers. -->
     <div class="canvas-wrap">
+      <StudioBackground />
       <canvas ref="canvasEl"></canvas>
     </div>
   </main>
@@ -16,6 +19,7 @@ import { initScene } from './three/main';
 import TopNavigation from './components/TopNavigation.vue';
 import ConfiguratorPanel from './components/ConfiguratorPanel.vue';
 import CollectionBar from './components/CollectionBar.vue';
+import StudioBackground from './components/StudioBackground.vue';
 
 const canvasEl = ref<HTMLCanvasElement | null>(null);
 let cleanup: (() => void) | null = null;
@@ -75,9 +79,14 @@ onUnmounted(() => {
   border-radius: 24px;
 }
 
+/* Canvas selbst ist transparent (renderer mit alpha), der Hintergrund kommt
+   aus StudioBackground.vue darunter - z-index hält die Ebenen unabhängig von
+   der DOM-Reihenfolge stabil. */
 .canvas-wrap canvas {
   position: absolute;
   inset: 0;
+  z-index: 1;
   border-radius: 24px;
+  background: transparent;
 }
 </style>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { IconCardOption } from '../../state/donutConfig';
 import { handleRadioGroupKeydown } from '../../composables/useRadioGroupKeyboard';
+import { hexToCss } from '../../utils/color';
 
 const props = defineProps<{
   options: IconCardOption[];
@@ -40,7 +41,13 @@ function onKeydown(event: KeyboardEvent) {
       @click="select(opt.id)"
       @keydown="onKeydown"
     >
-      <span class="option-card-icon" aria-hidden="true">{{ opt.icon }}</span>
+      <!-- Reiner Orientierungs-Punkt in der Optionsfarbe (kein Icon), damit die
+           Optionen ohne bildliche Ablenkung unterscheidbar bleiben -->
+      <span
+        class="option-card-dot"
+        :style="{ background: hexToCss(opt.hex) }"
+        aria-hidden="true"
+      ></span>
       <span class="option-card-text">
         <span class="option-card-label">{{ opt.label }}</span>
         <span class="option-card-desc">{{ opt.desc }}</span>
@@ -88,16 +95,13 @@ function onKeydown(event: KeyboardEvent) {
   background: #fff7ee;
 }
 
-.option-card-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: #e8dcc4;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Rand auch bei hellen/weißen Optionsfarben (z. B. Füllung "Ohne") sichtbar */
+.option-card-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid #8a7f74;
   flex-shrink: 0;
-  font-size: 18px;
 }
 
 .option-card-text {

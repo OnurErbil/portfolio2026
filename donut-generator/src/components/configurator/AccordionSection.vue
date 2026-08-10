@@ -1,6 +1,7 @@
 <script setup lang="ts">
 defineProps<{
   id: string;
+  // URL eines SVGs aus src/assets/icons (von Vite als Asset-URL aufgelöst)
   icon: string;
   iconBg: string;
   title: string;
@@ -22,7 +23,9 @@ defineEmits<{ toggle: [] }>();
         :aria-controls="`accordion-panel-${id}`"
         @click="$emit('toggle')"
       >
-        <span class="accordion-icon" :style="{ background: iconBg }" aria-hidden="true">{{ icon }}</span>
+        <span class="accordion-icon" :style="{ background: iconBg }" aria-hidden="true">
+          <img class="accordion-icon-img" :src="icon" alt="" />
+        </span>
         <span class="accordion-heading-text">
           <span class="accordion-title">{{ title }}</span>
           <span class="accordion-summary">{{ summary }}</span>
@@ -97,7 +100,16 @@ defineEmits<{ toggle: [] }>();
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 22px;
+}
+
+/* Die Icons haben unterschiedliche Seitenverhältnisse (z. B. 104x62 vs. 61x76),
+   deshalb über max-* begrenzen statt fest skalieren - so bleiben sie unverzerrt
+   und optisch gleich groß, zentriert in der farbigen Kachel. */
+.accordion-icon-img {
+  display: block;
+  max-width: 28px;
+  max-height: 28px;
+  object-fit: contain;
 }
 
 .accordion-heading-text {

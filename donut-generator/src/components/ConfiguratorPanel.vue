@@ -14,6 +14,13 @@ import {
   toppingOptions,
   toggleTopping,
 } from '../state/donutConfig';
+// Icons als Asset-URLs (Vite löst den Import zur gehashten Datei auf)
+import formIcon from '../assets/icons/form_icon.svg';
+import teigIcon from '../assets/icons/teig_icon.svg';
+import fuellungIcon from '../assets/icons/fuellung_icon.svg';
+import glasurIcon from '../assets/icons/glasur_icon.svg';
+import toppingIcon from '../assets/icons/topping_icon.svg';
+import ernaehrungsfilterIcon from '../assets/icons/ernaehrungsfilter_icon.svg';
 
 const openSectionId = ref('form');
 
@@ -59,7 +66,7 @@ const dietSummary = computed(() => {
     <div class="accordion">
       <AccordionSection
         id="form"
-        icon="🍩"
+        :icon="formIcon"
         icon-bg="#FCE9DA"
         title="Form"
         :summary="shapeSummary"
@@ -76,7 +83,7 @@ const dietSummary = computed(() => {
 
       <AccordionSection
         id="teig"
-        icon="🥖"
+        :icon="teigIcon"
         icon-bg="#F3E4C0"
         title="Teig"
         :summary="doughSummary"
@@ -93,7 +100,7 @@ const dietSummary = computed(() => {
 
       <AccordionSection
         id="fuellung"
-        icon="🍇"
+        :icon="fuellungIcon"
         icon-bg="#EDE3F5"
         title="Füllung"
         :summary="fillingSummary"
@@ -110,7 +117,7 @@ const dietSummary = computed(() => {
 
       <AccordionSection
         id="icing"
-        icon="🍥"
+        :icon="glasurIcon"
         icon-bg="#FBE1EE"
         title="Icing / Glasur"
         :summary="icingSummary"
@@ -143,7 +150,7 @@ const dietSummary = computed(() => {
 
       <AccordionSection
         id="toppings"
-        icon="✨"
+        :icon="toppingIcon"
         icon-bg="#FCE9DA"
         title="Toppings"
         :summary="toppingsSummary"
@@ -160,7 +167,7 @@ const dietSummary = computed(() => {
 
       <AccordionSection
         id="diaet"
-        icon="🌱"
+        :icon="ernaehrungsfilterIcon"
         icon-bg="#E3F0E6"
         title="Ernährungsfilter"
         :summary="dietSummary"

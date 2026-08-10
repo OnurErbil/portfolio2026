@@ -4,9 +4,9 @@ export interface IconCardOption {
   id: string;
   label: string;
   desc: string;
-  icon: string;
-  // Rein dekorativ für die Auswahl-Zusammenfassung (Chips in der CollectionBar) -
-  // hat keinen Bezug zur 3D-Szene bei Form/Füllung (siehe Platzhalter-Hinweis unten).
+  // Farbe des Orientierungs-Punkts in OptionCardGroup und der Chips in der
+  // CollectionBar - hat keinen Bezug zur 3D-Szene bei Form/Füllung
+  // (siehe Platzhalter-Hinweis unten).
   hex: number;
 }
 
@@ -25,10 +25,10 @@ export interface ToppingOption {
 // Teig & Icing sind auf echte Meshes ('donut' / 'icing') im donut.glb gemappt,
 // siehe src/three/main.ts.
 export const doughOptions: IconCardOption[] = [
-  { id: 'hefe', label: 'Hefeteig', desc: 'Locker & luftig', icon: '🍞', hex: 0xe8c177 },
-  { id: 'schoko', label: 'Schokoladenteig', desc: 'Reicher Kakao-Teig', icon: '🍫', hex: 0x6b4226 },
-  { id: 'vollkorn', label: 'Vollkorn', desc: 'Mit Vollkornmehl', icon: '🌾', hex: 0xc9a15e },
-  { id: 'vegan', label: 'Vegan-Teig', desc: 'Pflanzlich, ohne Ei', icon: '🌿', hex: 0xf3e4c0 },
+  { id: 'hefe', label: 'Hefeteig', desc: 'Locker & luftig', hex: 0xe8c177 },
+  { id: 'schoko', label: 'Schokoladenteig', desc: 'Reicher Kakao-Teig', hex: 0x6b4226 },
+  { id: 'vollkorn', label: 'Vollkorn', desc: 'Mit Vollkornmehl', hex: 0xc9a15e },
+  { id: 'vegan', label: 'Vegan-Teig', desc: 'Pflanzlich, ohne Ei', hex: 0xf3e4c0 },
 ];
 
 export const icingColors: ColorOption[] = [
@@ -52,15 +52,15 @@ export const icingColors: ColorOption[] = [
 // Länglich/Bar, Mini-Donuts, siehe context/Konfigurator Seite.dc.html) kommen
 // evtl. später dazu, sobald es dafür Meshes gibt.
 export const shapeOptions: IconCardOption[] = [
-  { id: 'classic', label: 'Klassisch rund', desc: 'Der Original-Ring', icon: '🍩', hex: 0xf4a62a },
+  { id: 'classic', label: 'Klassisch rund', desc: 'Der Original-Ring', hex: 0xf4a62a },
 ];
 
 export const fillingOptions: IconCardOption[] = [
-  { id: 'ohne', label: 'Ohne', desc: 'Pur ohne Füllung', icon: '🚫', hex: 0xffffff },
-  { id: 'vanille', label: 'Vanillecreme', desc: 'Cremig & süß', icon: '🍦', hex: 0xf5e1a4 },
-  { id: 'erdbeer', label: 'Erdbeermarmelade', desc: 'Fruchtig-fein', icon: '🍓', hex: 0xe23d6b },
-  { id: 'schoko', label: 'Schokolade', desc: 'Zartschmelzend', icon: '🍫', hex: 0x4b2e1a },
-  { id: 'karamell', label: 'Karamell', desc: 'Salzig-süß', icon: '🍯', hex: 0xc97b2e },
+  { id: 'ohne', label: 'Ohne', desc: 'Pur ohne Füllung', hex: 0xffffff },
+  { id: 'vanille', label: 'Vanillecreme', desc: 'Cremig & süß', hex: 0xf5e1a4 },
+  { id: 'erdbeer', label: 'Erdbeermarmelade', desc: 'Fruchtig-fein', hex: 0xe23d6b },
+  { id: 'schoko', label: 'Schokolade', desc: 'Zartschmelzend', hex: 0x4b2e1a },
+  { id: 'karamell', label: 'Karamell', desc: 'Salzig-süß', hex: 0xc97b2e },
 ];
 
 // Toppings werden echt in 3D generiert (src/three/toppings.ts) - vorerst nur die
@@ -78,7 +78,7 @@ export const donutConfig = reactive({
   doughId: doughOptions[0].id,
   fillingId: fillingOptions[0].id,
   icingColorId: icingColors[1].id,
-  glossValue: 60,
+  glossValue: 50,
   toppingIds: [] as string[],
   vegan: false,
   glutenfrei: false,
@@ -101,9 +101,19 @@ export function getIcingHex(): number {
   return icingColors.find((c) => c.id === donutConfig.icingColorId)?.hex ?? icingColors[0].hex;
 }
 
-// Glanzgrad 0-100 -> Roughness 1-0.1 (0% = ganz matt, 100% = fast spiegelnd)
+// Der Regler zeigt bewusst die volle Skala 0-100 %, wirkt im 3D aber nur in
+// diesem eingeschränkten Band - darüber/darunter wirkt die Glasur zu spiegelnd
+// bzw. zu stumpf. 0 % Regler = EFFECTIVE_GLOSS_MIN, 100 % = EFFECTIVE_GLOSS_MAX.
+const EFFECTIVE_GLOSS_MIN = 10;
+const EFFECTIVE_GLOSS_MAX = 50;
+
+// Glanzgrad in Prozent -> Roughness (1 = ganz matt, 0.1 = fast spiegelnd).
+// Ergebnis liegt durch das Band oben zwischen ~0.91 (matt) und ~0.55 (seidig).
 export function getIcingRoughness(): number {
-  return 1 - (donutConfig.glossValue / 100) * 0.9;
+  const effectiveGloss =
+    EFFECTIVE_GLOSS_MIN +
+    (donutConfig.glossValue / 100) * (EFFECTIVE_GLOSS_MAX - EFFECTIVE_GLOSS_MIN);
+  return 1 - (effectiveGloss / 100) * 0.9;
 }
 
 const BASE_PRICE = 3.2;

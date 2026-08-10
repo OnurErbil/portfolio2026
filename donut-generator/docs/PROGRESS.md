@@ -98,3 +98,67 @@ Status: ✅ bestätigt (2026-07-24)
 - Schokostückchen tauchen tiefer in die Glasur ein (Versatz entlang der Normale von `0.75 × Radius` auf `0.25 × Radius` reduziert)
 - Hinweis zur Konsistenz: der Hex-Wert für „Streusel" in `src/state/donutConfig.ts` ist jetzt nur noch die UI-Farbe des Chip-Punkts (Orange, aus dem Design-System) – im 3D gilt die bunte Palette. Kommentar im Store entsprechend angepasst
 - Verifiziert: `vue-tsc -b` fehlerfrei; im Browser mit weißer Glasur geprüft – alle fünf Streusel-Farben sichtbar, Schokokugeln sitzen sichtbar tiefer, keine Konsolenfehler
+
+## 2026-08-10 – Eigene Icons im Konfigurator + Orientierungs-Punkte statt Sub-Icons
+
+Status: ✅ bestätigt (2026-08-10)
+
+- Die sechs Emoji-Icons in den Accordion-Kopfzeilen durch die eigenen SVGs aus `src/assets/icons/` ersetzt: `form_icon.svg`, `teig_icon.svg`, `fuellung_icon.svg`, `glasur_icon.svg`, `topping_icon.svg`, `ernaehrungsfilter_icon.svg`. Import in `ConfiguratorPanel.vue` als Asset-URL (Vite hasht/inlined das selbst), Bindung über die bestehende `icon`-Prop von `AccordionSection`
+- `AccordionSection.vue`: rendert statt des Emoji-Textknotens ein `<img alt="">` in der farbigen Kachel. Die Hintergrundfarben der Kacheln sind unverändert geblieben (wie gefordert)
+- Zentrierung: die Icons haben unterschiedliche Seitenverhältnisse (104×62 bis 61×76), deshalb `max-width`/`max-height: 28px` + `object-fit: contain` statt fester Größe – so bleiben sie unverzerrt und optisch gleich groß. Die Kachel zentriert per Flexbox
+- Sub-Icons in den geöffneten Sektionen (Form/Teig/Füllung) durch einen einfachen farbigen Kreis ersetzt (`option-card-dot` in `OptionCardGroup.vue`), Farbe kommt aus dem bereits vorhandenen `hex` der Option – analog zu den Chips in `ToppingChipGroup`/`CollectionBar`. Rand `#8a7f74` (~3.9:1), damit auch helle/weiße Optionsfarben wie Füllung „Ohne" sichtbar bleiben (WCAG 1.4.11)
+- Aufräumen: das `icon`-Feld (Emoji) in `IconCardOption` und allen Options-Listen in `src/state/donutConfig.ts` entfernt – nach dem Umstieg auf Farbpunkte toter Code; der Kommentar zu `hex` beschreibt jetzt beide Verwendungen (Punkt + Chip)
+- Alle Icons bleiben dekorativ: Kachel weiterhin `aria-hidden`, das `<img>` zusätzlich mit leerem `alt` – die Sektion wird über ihren Titeltext benannt
+- Verifiziert: `vue-tsc -b` fehlerfrei; `npm run build` erfolgreich (alle sechs SVGs werden aufgelöst – fünf inlined als Data-URI, `glasur_icon.svg` als eigenes Asset). Im Browser per Playwright/Chromium geprüft: alle sechs Icons laden (`naturalWidth > 0`), sind in ihrer Kachel exakt zentriert (Abweichung Mittelpunkt ≤ 0,01 px in beiden Achsen), Hintergrundfarben unverändert, Farbpunkte in Form/Teig/Füllung korrekt, keine Konsolenfehler
+
+## 2026-08-10 – Glanzgrad-Regler auf 10–50 % begrenzt
+
+Status: ✅ bestätigt (2026-08-10)
+
+- `GLOSS_MIN = 10` / `GLOSS_MAX = 50` in `src/state/donutConfig.ts` ergänzt und im Slider (`ConfiguratorPanel.vue`) gebunden statt fester `min`/`max`-Attribute – so kann UI und Store nicht auseinanderlaufen
+- Startwert `glossValue` von 60 auf 30 gesetzt: 60 lag außerhalb des neuen Bereichs, der Regler hätte beim ersten Rendern einen Wert angezeigt, den er nicht mehr erreichen kann. 30 ist die Mitte des neuen Bereichs – falls die Glasur weiterhin so glänzend starten soll wie bisher, wäre 50 der nächstgelegene Wert
+- Die Umrechnung `getIcingRoughness()` bleibt unverändert (0–100 → Roughness 1–0.1); genutzt wird davon jetzt nur noch Roughness ~0.91 (matt) bis ~0.55 (seidig). Kommentar entsprechend präzisiert
+- Verifiziert: `vue-tsc -b` fehlerfrei
+
+### Nachtrag (2026-08-10) – ✅ bestätigt (2026-08-10) – Regler zählt wieder 0–100 %
+
+- Umgebaut: Der Regler zeigt wieder die volle Skala 0–100 %, die Einschränkung wirkt jetzt in der Umrechnung statt an den Regler-Grenzen. `GLOSS_MIN`/`GLOSS_MAX` sind dafür entfallen und durch die modul-internen `EFFECTIVE_GLOSS_MIN`/`EFFECTIVE_GLOSS_MAX` (10/50) in `getIcingRoughness()` ersetzt – die Konstanten müssen dadurch nicht mehr exportiert werden
+- `getIcingRoughness()` mappt den Reglerwert linear in dieses Band: 0 % → Roughness 0.91 (matt), 50 % → 0.73, 100 % → 0.55 (seidig). Der Nutzer bekommt also den vollen Regelweg, die Glasur wird aber nie zu spiegelnd
+- Startwert `glossValue` auf 50 gesetzt (Mitte der sichtbaren Skala); entspricht genau dem Glanz, den vorher der Wert 30 im eingeschränkten Regler erzeugt hätte
+- Verifiziert: `vue-tsc -b` fehlerfrei; Mapping mit Stützstellen 0/25/50/75/100 % nachgerechnet (0.910 / 0.820 / 0.730 / 0.640 / 0.550)
+
+## 2026-08-10 – Kamera-Distanz im lil-gui einstellbar (Debug-Tool)
+
+Status: ✅ bestätigt (2026-08-10)
+
+- Neuer Ordner „Kamera" im lil-gui (`setupCameraGUI()` in `src/three/gui.ts`, eingehängt in `src/three/main.ts`): Regler für `Distanz`, `Min-Distanz`, `Max-Distanz` plus Button „Position in Konsole loggen"
+- Der Distanz-Regler verschiebt die Kamera entlang ihrer aktuellen Blickrichtung zum Target, ändert also nur den Abstand und lässt den Blickwinkel unangetastet
+- `OrbitControls` begrenzt den Abstand selbst auf `minDistance`/`maxDistance`. Damit der Distanz-Regler nicht stumm zurückspringt, wandert seine Range beim Ändern der beiden Grenzwerte mit (`controller.min()`/`.max()`)
+- Der Regler ist per `.listen()` an den echten Kamerawert gekoppelt; `setupCameraGUI()` gibt dafür eine Sync-Funktion zurück, die in der Animations-Schleife den tatsächlichen Abstand zurückschreibt – so stimmt die Anzeige auch nach Zoomen/Orbiten per Maus
+- Der Log-Button gibt die fertige `camera.position.set(...)`-Zeile inkl. Distanz aus, damit der gefundene Wert direkt nach `src/three/main.ts` übernommen werden kann
+- Bewusst **nicht** geändert: die Start-Kameraposition `camera.position.set(0, 1, 1.5)` (Distanz ~1.803) – der Zielwert wird erst nach dem Ausprobieren gesetzt
+- Hinweis für später: Das gehört zum lil-gui-Debug-Panel und fällt mit diesem beim Deployment weg bzw. hinter `import.meta.env.DEV` (siehe CLAUDE.md)
+- Verifiziert: `vue-tsc -b` fehlerfrei (Browser-Prüfung diesmal bewusst ausgelassen, um den laufenden Dev-Server nicht wieder zu stören)
+
+### Nachtrag (2026-08-10) – ✅ bestätigt (2026-08-10) – Zoom-Bereich festgelegt
+
+- `controls.maxDistance` von 3 auf **1.03** gesetzt (weitester erlaubter Blick), `controls.minDistance` bleibt bei **0.5**
+- Start-Kameraposition mitgezogen: `camera.position.set(0, 0.571, 0.857)` statt `(0, 1, 1.5)`. Der Blickwinkel ist identisch (dieselbe Richtung 0/1/1.5, nur auf Länge 1.03 skaliert), nur der Abstand ist kleiner. Nötig, weil die alte Position mit Distanz ~1.803 über dem neuen `maxDistance` lag – OrbitControls hätte sie beim ersten `update()` sichtbar zurückgeschnappt
+- Der Distanz-Regler im lil-gui deckt damit jetzt genau den erlaubten Bereich 0.5–1.03 ab
+- Verifiziert: `vue-tsc -b` fehlerfrei; Startdistanz nachgerechnet = 1.0298
+
+## 2026-08-10 – Transparenter Canvas + CSS-Studio-Hintergrund („3D Grid Studio")
+
+Status: ✅ bestätigt (2026-08-10)
+
+- Neue Komponente `src/components/StudioBackground.vue`: heller Studio-Hintergrund komplett in CSS, ohne Bilddatei. Drei Ebenen – Lichtstimmung (`__glow`), perspektivisches Bodenraster (`__floor`), weicher Bodenschatten (`__shadow`) – auf Grundfarbe `#fcf8ef`
+- Raster ist **echte** Perspektive statt gezeichneter: eine gleichmäßig gerasterte Ebene (zwei `repeating-linear-gradient`) wird per `perspective(190px) rotateX(64deg)` weggekippt, `transform-origin: 50% 0`. Dadurch laufen die Längslinien von selbst auf einen Fluchtpunkt in der horizontalen Mitte zu und die Querlinien werden nach hinten enger – ohne manuell berechnete Koordinaten, und beim Skalieren bleibt die Perspektive korrekt
+- Horizont bei 38 % der Höhe (`--horizon`), Rasterfarbe `#d8bfa8`, Ebenen-`opacity: 0.28`
+- Direkt am Horizont stehen die Querlinien rechnerisch unendlich dicht – das flimmert und ergäbe eine harte Kante. Deshalb blendet eine `mask-image`-Rampe das Raster oben und unten aus
+- Farbstopps enden bewusst auf `rgba(…, 0)` statt `transparent`: `transparent` interpoliert in manchen Engines über transparentes Schwarz, was graue Ränder und damit sichtbare harte Verläufe erzeugt
+- Magenta- (`#d0006f`, 5 %) und Orange-Glow (`#f47216`, 6 %) im vorgegebenen Rahmen von 4–7 %; warmer Glow hinter dem Donut bewusst nur bei 0.7 Alpha, sonst wäscht er die warme Grundfarbe zu Weiß aus
+- Three.js: Renderer auf `alpha: true` + `setClearColor(0x000000, 0)`, `scene.background` entfernt. `scene.environment` (PMREM/RoomEnvironment) bleibt – das ist Beleuchtung, kein Hintergrund. Licht, Kamera, Controls und Materialien unverändert
+- Trennung der Ebenen: `.canvas-wrap` in `App.vue` ist der Bühnen-Container, `StudioBackground` liegt darin auf `z-index: 0`, der Canvas transparent auf `z-index: 1`. Die UI (Panel, CollectionBar, Navigation) liegt komplett außerhalb dieses Wrappers
+- Alle Hintergrund-Elemente sind `aria-hidden` und `pointer-events: none`, damit OrbitControls nicht beeinträchtigt wird
+- Verifiziert (gegen `vite preview` auf Port 4173, damit der laufende Dev-Server nicht gestört wird; Playwright diesmal isoliert außerhalb des Projekts installiert, `package.json`/`package-lock.json` unberührt): `vue-tsc -b` und `npm run build` fehlerfrei, keine Konsolenfehler. `elementFromPoint()` in der Mitte des Bühnen-Bereichs liefert `CANVAS` (Hintergrund fängt keine Klicks ab), und ein Drag über den Canvas verändert das Bild – OrbitControls funktioniert also weiterhin
+- Bekannte, **nicht** von dieser Änderung verursachte Einschränkung: bei ~420 px Breite ist der Bühnen-Bereich durch das noch fehlende responsive Layout des App-Bodys stark zusammengedrückt (siehe „Noch offen" in CLAUDE.md). Der Hintergrund selbst ist responsiv (nur relative Einheiten, plus feineres/flacheres Raster unter 720 px)
