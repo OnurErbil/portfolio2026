@@ -1,6 +1,105 @@
 import GUI from 'lil-gui';
 import * as THREE from 'three';
 import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { donutScenes, type DonutScene, type SceneId } from './scenes';
+import type { SceneAnimator } from './sceneAnimator';
+
+const SCENE_IDS: SceneId[] = ['neutral', 'form', 'teig', 'glasur', 'toppings'];
+
+function round(value: number): string {
+  return value.toFixed(3);
+}
+
+function formatScene(id: SceneId, scene: DonutScene): string {
+  return (
+    `  ${id}: {\n` +
+    `    camera: [${scene.camera.map(round).join(', ')}],\n` +
+    `    target: [${scene.target.map(round).join(', ')}],\n` +
+    `    donutRotationY: ${round(scene.donutRotationY)},\n` +
+    `    minDistance: ${round(scene.minDistance)},\n` +
+    `    maxDistance: ${round(scene.maxDistance)},\n` +
+    `  },`
+  );
+}
+
+// Preset-Recorder für die Kamera-/Produkt-Szenen (src/three/scenes.ts).
+//
+// Ablauf: Szene im Dropdown wählen, Ansicht per Maus und über den Ordner
+// "Kamera" einstellen, Donut-Drehung am Regler setzen - dann "Szene speichern".
+// Das schreibt die Werte sofort in die laufende Szene (man kann sie also direkt
+// über das Accordion gegenprüfen) und loggt den fertigen Block für scenes.ts.
+//
+// Teil des lil-gui-Debug-Panels und fällt mit diesem beim Deployment weg.
+export function setupSceneGUI(
+  gui: GUI,
+  camera: THREE.PerspectiveCamera,
+  controls: OrbitControls,
+  donutPivot: THREE.Object3D,
+  animator: SceneAnimator
+) {
+  const sceneFolder = gui.addFolder('Szenen (Debug)');
+  const state = { szene: 'neutral' as SceneId, leerlauf: true };
+
+  sceneFolder.add(state, 'szene', SCENE_IDS).name('Szene');
+
+  // Ohne diesen Schalter lässt sich die neutrale Szene nicht einstellen: dort
+  // dreht sich der Donut dauerhaft weiter und überschreibt den Regler sofort.
+  sceneFolder
+    .add(state, 'leerlauf')
+    .name('Leerlauf-Drehung')
+    .onChange((enabled: boolean) => animator.setIdleEnabled(enabled));
+
+  // Direkt an die Pivot-Gruppe gebunden, damit der Regler auch die
+  // Leerlauf-Drehung mitläuft und nicht veraltete Werte anzeigt
+  sceneFolder
+    .add(donutPivot.rotation, 'y', 0, Math.PI * 2, 0.01)
+    .name('Donut-Drehung Y')
+    .listen();
+
+  function captureScene(): DonutScene {
+    const twoPi = Math.PI * 2;
+    return {
+      camera: [camera.position.x, camera.position.y, camera.position.z],
+      target: [controls.target.x, controls.target.y, controls.target.z],
+      donutRotationY: ((donutPivot.rotation.y % twoPi) + twoPi) % twoPi,
+      minDistance: controls.minDistance,
+      maxDistance: controls.maxDistance,
+    };
+  }
+
+  sceneFolder
+    .add({ anfahren: () => animator.flyTo(state.szene) }, 'anfahren')
+    .name('Szene anfahren');
+
+  sceneFolder
+    .add(
+      {
+        speichern: () => {
+          const scene = captureScene();
+          // Bewusst in das importierte Objekt geschrieben: so wirkt die neue
+          // Einstellung sofort auch über das Accordion, ohne Reload.
+          donutScenes[state.szene] = scene;
+          console.log(formatScene(state.szene, scene));
+        },
+      },
+      'speichern'
+    )
+    .name('Szene speichern + loggen');
+
+  sceneFolder
+    .add(
+      {
+        alle: () => {
+          const body = SCENE_IDS.map((id) => formatScene(id, donutScenes[id])).join('\n');
+          console.log(
+            `export const donutScenes: Record<SceneId, DonutScene> = {\n${body}\n};`
+          );
+        },
+      },
+      'alle'
+    )
+    .name('Alle Presets loggen');
+}
 
 // Kamera-Abstand zum Donut zum Ausprobieren. Der gefundene Wert wird danach in
 // src/three/main.ts als Startposition hart gesetzt - das Panel ist nur Debug-Tool.

@@ -40,11 +40,14 @@ donut-generator/
 │  │  └─ useRadioGroupKeyboard.ts # Roving Tabindex + Pfeiltasten-Navigation
 │  ├─ state/
 │  │  ├─ donutConfig.ts     # zentraler reactive Store für den Konfigurationsstate
+│  │  ├─ sceneFocus.ts      # offene Accordion-Sektion (steuert die Kamera-Szene)
 │  │  └─ collection.ts      # "Sammlung" (localStorage) - noch ohne Galerie-Seite
 │  ├─ three/
 │  │  ├─ main.ts            # initScene() – Szenen-Setup, Lifecycle
 │  │  ├─ donut.ts           # loadDonut() – GLTF laden, Meshes identifizieren
 │  │  ├─ toppings.ts        # Streusel (Kapseln) & Schokostückchen (Kugeln) als InstancedMesh
+│  │  ├─ scenes.ts          # Kamera-/Produkt-Presets je Sektion (reine Daten)
+│  │  ├─ sceneAnimator.ts   # Flug zwischen den Szenen + Leerlauf-Drehung
 │  │  ├─ placeholders.ts    # No-op-Funktionen für Form/Füllung (Meshes fehlen noch)
 │  │  └─ gui.ts             # lil-gui Debug-Panels (temporär)
 │  ├─ utils/
@@ -96,6 +99,10 @@ Bereits umgesetzt:
 - Eigene SVG-Icons (`src/assets/icons/`) in den Accordion-Kopfzeilen des Konfigurators, zentriert in ihrer farbigen Kachel (unterschiedliche Seitenverhältnisse, daher `max-width`/`max-height` + `object-fit: contain` statt fester Größe). Die Sub-Icons in den geöffneten Sektionen sind bewusst nur noch farbige Punkte in der Optionsfarbe – das `icon`-Feld (Emoji) im Store ist dadurch entfallen
 - Glanzgrad-Regler zählt sichtbar 0–100 %, wirkt im 3D aber nur in einem gedämpften Band: `getIcingRoughness()` mappt den Wert auf Roughness ~0.91 (matt) bis ~0.55 (seidig), damit die Glasur nie zu spiegelnd wird
 - Kamera-Ordner im lil-gui (`setupCameraGUI()` in `src/three/gui.ts`): Regler für Distanz/Min-Distanz/Max-Distanz + Button, der die fertige `camera.position.set(...)`-Zeile in die Konsole loggt. Reines Debug-Tool, fällt mit lil-gui weg
+- Kamera-/Produkt-Animation je Konfigurator-Sektion: Das Öffnen einer Accordion-Sektion fährt Kamera **und** Donut in eine vorbereitete End-Szene (`src/three/scenes.ts`), Zuklappen führt zurück auf `neutral`, wo der Donut sich langsam weiterdreht. Betroffen sind Form, Teig, Glasur und Toppings – Füllung und Ernährungsfilter haben bewusst keine eigene Szene und fallen auf `neutral` zurück. Die offene Sektion liegt dafür im Store (`src/state/sceneFocus.ts`), der Konfigurator startet zugeklappt
+- Animation läuft über `src/three/sceneAnimator.ts` (0.9 s, `easeInOutCubic`, Kamerapfad in Kugelkoordinaten, bewusst ohne Tween-Library). Der Donut hängt in einer Pivot-Gruppe, damit er sich um seine sichtbare Mitte dreht und nicht um den versetzten Modell-Ursprung. Zoom-Grenzen gehören zur jeweiligen Szene, nicht global
+- Nutzer hat immer Vorrang: Maus/Touch auf dem Canvas bricht einen laufenden Flug ab (Listener in der Capture-Phase, sonst verschluckt OrbitControls den ersten Klick). Bei `prefers-reduced-motion: reduce` wird ohne Animation direkt zur Zielansicht gesprungen und die Leerlauf-Drehung entfällt
+- Preset-Recorder im lil-gui (`setupSceneGUI()` in `src/three/gui.ts`): Szene wählen, Ansicht per Maus einstellen, speichern – wirkt sofort und loggt den fertigen Block für `src/three/scenes.ts`. Ebenfalls reines Debug-Tool
 - Canvas ist transparent (`alpha: true` + `setClearColor(0x000000, 0)`, kein `scene.background`); der Hintergrund ist eine reine CSS-Ebene darunter (`StudioBackground.vue`): helles Creme `#fcf8ef`, perspektivisches Bodenraster über eine per `perspective()`/`rotateX()` gekippte Rasterebene, dezente Magenta-/Orange-Glows (5–6 %) und weicher Bodenschatten. Alles `pointer-events: none` + `aria-hidden`, damit OrbitControls unberührt bleibt. `scene.environment` (PMREM/RoomEnvironment) bleibt bestehen – das ist Beleuchtung, kein Hintergrund
 - Details, gefundene/behobene Bugs (u. a. Kontrast-Fixes) und Verifikationsschritte zu den obigen Punkten: siehe [`docs/PROGRESS.md`](docs/PROGRESS.md)
 
@@ -105,8 +112,7 @@ Bereits umgesetzt:
 - Kein responsives Layout für den restlichen App-Body (Panel/Canvas/CollectionBar) – nur `TopNavigation.vue` ist bereits eigenständig responsiv (Hamburger-Menü < 1024px)
 - Deployment-Pipeline (Ziel: IONOS 1&1, manuelles FTP-Deployment, `base`-Pfad in `vite.config.ts` beachten)
 - Finale Farben für den Konfigurator (die Icons sind mit `src/assets/icons/` gesetzt)
-- Donut Animation bei Interaktion mit den Konfigurator
-- Extra Option den User selbst den Donut zu besichtigen per Maus/Touch. Ansonsten läuft die vorgefertige Animation
+- Füllung hat bewusst noch keine eigene Kamera-Szene (kommt erst infrage, wenn es dafür Meshes im `donut.glb` gibt)
 
 ## Wichtige Konventionen im Code
 

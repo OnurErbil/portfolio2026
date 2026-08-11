@@ -5,10 +5,13 @@ import { loadDonut } from './donut';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { PMREMGenerator } from 'three';
 import GUI from 'lil-gui';
-import { setupCameraGUI, setupLightGUI, setupMaterialGUI } from './gui';
+import { setupCameraGUI, setupLightGUI, setupMaterialGUI, setupSceneGUI } from './gui';
 import { donutConfig, getDoughHex, getIcingHex, getIcingRoughness } from '../state/donutConfig';
+import { sceneFocus } from '../state/sceneFocus';
 import { applyShape, applyFilling } from './placeholders';
 import { createToppings, type ToppingsController } from './toppings';
+import { donutScenes, getSceneIdForSection } from './scenes';
+import { createSceneAnimator, type SceneAnimator } from './sceneAnimator';
 
 export function initScene(canvas: HTMLCanvasElement) {
   // Kein scene.background: der Hintergrund kommt als CSS-Ebene hinter dem Canvas
@@ -22,11 +25,11 @@ export function initScene(canvas: HTMLCanvasElement) {
     0.1,
     100
   );
-  // Gleicher Blickwinkel wie zuvor (Richtung 0/1/1.5), nur auf Distanz 1.03
-  // skaliert - das ist zugleich maxDistance, der Donut startet also im
-  // weitesten erlaubten Blick.
-  camera.position.set(0, 0.571, 0.857);
-  camera.lookAt(0, 0, 0);
+  // Startzustand kommt aus der neutralen Szene, damit die Werte nur an einer
+  // Stelle stehen (src/three/scenes.ts) und nicht hier zusätzlich hart codiert.
+  const neutralScene = donutScenes.neutral;
+  camera.position.set(...neutralScene.camera);
+  camera.lookAt(...neutralScene.target);
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setClearColor(0x000000, 0);
@@ -43,9 +46,9 @@ export function initScene(canvas: HTMLCanvasElement) {
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
-  controls.minDistance = 0.5;
-  controls.maxDistance = 1.03;
-  controls.target.set(0, 0, 0);
+  controls.minDistance = neutralScene.minDistance;
+  controls.maxDistance = neutralScene.maxDistance;
+  controls.target.set(...neutralScene.target);
   controls.update();
 
   const ambient = new THREE.AmbientLight(0xffffff, 0);
@@ -63,14 +66,24 @@ export function initScene(canvas: HTMLCanvasElement) {
   let stopMaterialWatch: (() => void) | null = null;
   let stopPlaceholderWatch: (() => void) | null = null;
   let stopToppingWatch: (() => void) | null = null;
+  let stopSceneWatch: (() => void) | null = null;
   let toppings: ToppingsController | null = null;
+  let animator: SceneAnimator | null = null;
 
   loadDonut().then(({ root, donutMesh, icingMesh }) => {
     if (disposed) return;
 
-    scene.add(root);
-    // root.position.set(0, 0, 0);
-    // --- Bounding Box berechnen, um den Offset zu sehen ---
+    // Der Donut sitzt im GLB nicht im Ursprung. root wird deshalb um seinen
+    // Mittelpunkt zurückversetzt und zusätzlich in eine Pivot-Gruppe gehängt:
+    // gedreht wird die Gruppe, sodass sich der Donut sauber um seine sichtbare
+    // Mitte dreht statt um den versetzten Modell-Ursprung zu schwenken.
+    const donutPivot = new THREE.Group();
+    // Startwinkel aus der neutralen Szene, sonst stünde der Donut beim Laden auf
+    // 0 und würde erst beim ersten Zuklappen einer Sektion richtig ausgerichtet
+    donutPivot.rotation.y = neutralScene.donutRotationY;
+    scene.add(donutPivot);
+    donutPivot.add(root);
+
     const box = new THREE.Box3().setFromObject(root);
     const center = box.getCenter(new THREE.Vector3());
     root.position.sub(center);
@@ -127,8 +140,20 @@ export function initScene(canvas: HTMLCanvasElement) {
       }
     );
 
-    // GUI für Materialien erst HIER, weil Meshes jetzt garantiert existieren
+    // Kamera-/Produkt-Animation: das Öffnen einer Accordion-Sektion fährt die
+    // passende Szene an, Zuklappen (leere sectionId) führt zurück auf neutral.
+    // Kein initialer flyTo(): die Kamera steht bereits auf der neutralen Szene.
+    const sceneAnimator = createSceneAnimator(camera, controls, donutPivot, canvas);
+    animator = sceneAnimator;
+    stopSceneWatch = watch(
+      () => sceneFocus.openSectionId,
+      (sectionId) => animator?.flyTo(getSceneIdForSection(sectionId))
+    );
+
+    // GUI für Materialien und Szenen erst HIER: Meshes und Pivot existieren
+    // jetzt garantiert
     setupMaterialGUI(gui, donutMesh, icingMesh);
+    setupSceneGUI(gui, camera, controls, donutPivot, sceneAnimator);
   }).catch((err) => {
     console.error('Fehler beim Laden des Donuts:', err);
   });
@@ -142,8 +167,23 @@ export function initScene(canvas: HTMLCanvasElement) {
   }
   window.addEventListener('resize', handleResize);
 
+  // THREE.Clock ist ab r185 deprecated, deshalb die Zeit direkt messen.
+  // Deckelung: war der Tab im Hintergrund, pausiert requestAnimationFrame und
+  // der erste Frame danach hätte sonst einen Delta von mehreren Sekunden - die
+  // Leerlauf-Drehung würde springen und ein laufender Flug wäre sofort zu Ende.
+  const MAX_DELTA = 0.1;
+  let lastFrameTime = performance.now();
+
   function animate() {
     animationId = requestAnimationFrame(animate);
+
+    const now = performance.now();
+    const delta = Math.min((now - lastFrameTime) / 1000, MAX_DELTA);
+    lastFrameTime = now;
+
+    // Animator vor den Controls: er setzt Position/Target, controls.update()
+    // übernimmt sie anschließend.
+    animator?.update(delta);
     controls.update();
     syncCameraGUI();
     renderer.render(scene, camera);
@@ -157,6 +197,8 @@ export function initScene(canvas: HTMLCanvasElement) {
     stopMaterialWatch?.();
     stopPlaceholderWatch?.();
     stopToppingWatch?.();
+    stopSceneWatch?.();
+    animator?.dispose();
     toppings?.dispose();
     controls.dispose();
     renderer.dispose();

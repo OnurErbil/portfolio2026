@@ -162,3 +162,33 @@ Status: ✅ bestätigt (2026-08-10)
 - Alle Hintergrund-Elemente sind `aria-hidden` und `pointer-events: none`, damit OrbitControls nicht beeinträchtigt wird
 - Verifiziert (gegen `vite preview` auf Port 4173, damit der laufende Dev-Server nicht gestört wird; Playwright diesmal isoliert außerhalb des Projekts installiert, `package.json`/`package-lock.json` unberührt): `vue-tsc -b` und `npm run build` fehlerfrei, keine Konsolenfehler. `elementFromPoint()` in der Mitte des Bühnen-Bereichs liefert `CANVAS` (Hintergrund fängt keine Klicks ab), und ein Drag über den Canvas verändert das Bild – OrbitControls funktioniert also weiterhin
 - Bekannte, **nicht** von dieser Änderung verursachte Einschränkung: bei ~420 px Breite ist der Bühnen-Bereich durch das noch fehlende responsive Layout des App-Bodys stark zusammengedrückt (siehe „Noch offen" in CLAUDE.md). Der Hintergrund selbst ist responsiv (nur relative Einheiten, plus feineres/flacheres Raster unter 720 px)
+
+## 2026-08-11 – Kamera-/Produkt-Animation pro Konfigurator-Sektion
+
+Status: ✅ bestätigt (2026-08-11)
+
+Umfasst die Schritte 1–4 des abgestimmten Plans; die endgültigen Szenen-Werte werden
+noch im Browser aufgezeichnet (Schritt 5).
+
+- Neuer Store `src/state/sceneFocus.ts`: hält die offene Accordion-Sektion. Vorher lag das als lokales `ref` in `ConfiguratorPanel.vue` – die Three.js-Schicht hängt sich jetzt per `watch()` dran, statt in eine Vue-Komponente hineinzugreifen (gleiches Muster wie Material- und Topping-Watcher)
+- `ConfiguratorPanel.vue` startet dadurch **zugeklappt** statt mit offener „Form"-Sektion, sonst wäre die neutrale Anfangsszene nie zu sehen
+- Neue Datei `src/three/scenes.ts`: Typ `DonutScene` + fünf Presets (`neutral`, `form`, `teig`, `glasur`, `toppings`) als reine Daten, dazu die Zuordnung Sektion → Szene. Füllung und Ernährungsfilter haben bewusst keine Szene und fallen über `?? 'neutral'` zurück – „Füllung vorerst nicht einschließen" ohne Sonderfall im Code
+- Startwerte für Kamera und Zoom-Grenzen in `src/three/main.ts` kommen jetzt aus `donutScenes.neutral` statt hart codiert – die Zahlen stehen nur noch an einer Stelle
+- Neuer Animator `src/three/sceneAnimator.ts` (bewusst ohne Tween-Library, ~60 Zeilen): 0.9 s, `easeInOutCubic`, Kamerapfad in **Kugelkoordinaten** statt linear – linear würde die Kamera durch den Donut ziehen und der Abstand sackte auf halber Strecke ein. Winkel jeweils über den kürzeren Weg
+- Der Donut hängt neu in einer Pivot-Gruppe (`donutPivot` in `main.ts`). `root` sitzt im GLB nicht im Ursprung und wird per `position.sub(center)` verschoben; eine Drehung von `root` hätte den Donut um den versetzten Modell-Ursprung geschwenkt statt ihn an Ort und Stelle zu drehen
+- Zoom-Grenzen gehören zur Szene, nicht global: `controls.update()` klemmt den Abstand **auch bei `enabled === false`**, ein Flug wäre sonst unterwegs hängengeblieben. Während des Flugs sind die Grenzen offen, beim Ankommen werden die der Szene gesetzt – nie enger als der aktuelle Abstand, damit es beim Abbrechen nicht ruckt
+- Nutzer hat Vorrang: `pointerdown`/`wheel` auf dem Canvas brechen einen laufenden Flug ab. Die Listener hängen in der **Capture-Phase** – OrbitControls registriert seinen `pointerdown`-Handler schon im Konstruktor am selben Canvas und hätte den Klick bei `enabled === false` sonst verworfen, das Ziehen hätte erst beim zweiten Ansetzen gegriffen
+- Leerlauf-Drehung (0.15 rad/s) nur in der neutralen Szene, pausiert während der Nutzer selbst dreht (OrbitControls-Events `start`/`end`), Winkel per Modulo begrenzt
+- `prefers-reduced-motion: reduce`: kein Flug (Sprung ans Ziel) und keine Leerlauf-Drehung. Wird bei jedem Zugriff frisch gelesen, wirkt also ohne Reload
+- `THREE.Clock` ist ab r185 deprecated – Zeitmessung direkt über `performance.now()`, Delta auf 0.1 s gedeckelt, sonst springt die Drehung nach einem Tab-Wechsel und ein laufender Flug wäre sofort beendet
+- Preset-Recorder im lil-gui (`setupSceneGUI()` in `src/three/gui.ts`): Szenen-Dropdown, Regler „Donut-Drehung Y", Schalter „Leerlauf-Drehung" (ohne ihn lässt sich die neutrale Szene nicht einstellen, weil der Donut den Regler sofort überschreibt), Buttons „Szene anfahren", „Szene speichern + loggen" und „Alle Presets loggen". Gespeicherte Werte gehen direkt in die laufende Szene, sind also sofort über das Accordion prüfbar
+- Verifiziert (gegen `vite preview` auf Port 4173, Playwright isoliert außerhalb des Projekts): `vue-tsc -b` und `npm run build` fehlerfrei, keine Konsolenfehler. Kameraposition über den lil-gui-Log-Button ausgelesen – Start auf `neutral`, „Glasur" öffnen landet exakt auf dem Ziel (unterwegs nachweislich Zwischenposition), Zuklappen exakt zurück auf `neutral`, Toppings-Szene erreicht Distanz 0.601 innerhalb ihrer eigenen Grenzen, Leerlauf-Drehung sichtbar und per Schalter abstellbar, Drag bricht den Flug ab, `prefers-reduced-motion` springt ohne Animation und ohne Drehung
+
+### Nachtrag (2026-08-11) – ✅ bestätigt (2026-08-11) – Aufgezeichnete Szenen eingetragen
+
+- Die im lil-gui aufgezeichneten Presets ersetzen die Platzhalter in `src/three/scenes.ts` (Schritt 5/6 des Plans)
+- Zwei Anpassungen an den Rohwerten, jeweils im Code kommentiert:
+  - `neutral.maxDistance` von 1.03 auf 1.031: der aufgezeichnete Abstand liegt bei 1.0301 und lag durch das Runden auf drei Nachkommastellen 0.0001 **über** der Grenze – OrbitControls hätte die Kamera beim Start klemmen müssen
+  - `donutPivot.rotation.y` wird in `main.ts` mit `neutral.donutRotationY` (0.45) initialisiert. Vorher startete der Donut auf 0 und wäre erst beim ersten Zuklappen einer Sektion richtig ausgerichtet gewesen
+- Hinweis ohne Änderung: `glasur` liegt mit Abstand 0.5001 exakt auf seiner `minDistance` – in dieser Szene lässt sich also nicht mehr hineinzoomen, nur heraus. Falls gewünscht, `minDistance` dort auf z. B. 0.45 senken
+- Verifiziert: `vue-tsc -b` und `npm run build` fehlerfrei. Alle vier Sektionen im Browser durchgeklickt, jede erreicht ihre aufgezeichnete Position exakt (Abweichung < 0.01), Rückkehr auf neutral funktioniert, keine Konsolenfehler. Screenshots geprüft: Teig-Szene zeigt bewusst die Unterseite (negative Kamera-Höhe), Toppings-Szene die Glasuroberfläche

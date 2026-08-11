@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import AccordionSection from './configurator/AccordionSection.vue';
 import OptionCardGroup from './configurator/OptionCardGroup.vue';
 import ColorSwatchGroup from './configurator/ColorSwatchGroup.vue';
@@ -14,6 +14,9 @@ import {
   toppingOptions,
   toggleTopping,
 } from '../state/donutConfig';
+// Die offene Sektion liegt im Store, weil die Three.js-Szene darauf reagiert
+// (Kamera-/Produkt-Animation) - siehe src/state/sceneFocus.ts
+import { sceneFocus, toggleSection } from '../state/sceneFocus';
 // Icons als Asset-URLs (Vite löst den Import zur gehashten Datei auf)
 import formIcon from '../assets/icons/form_icon.svg';
 import teigIcon from '../assets/icons/teig_icon.svg';
@@ -21,12 +24,6 @@ import fuellungIcon from '../assets/icons/fuellung_icon.svg';
 import glasurIcon from '../assets/icons/glasur_icon.svg';
 import toppingIcon from '../assets/icons/topping_icon.svg';
 import ernaehrungsfilterIcon from '../assets/icons/ernaehrungsfilter_icon.svg';
-
-const openSectionId = ref('form');
-
-function toggleSection(id: string) {
-  openSectionId.value = openSectionId.value === id ? '' : id;
-}
 
 const shapeSummary = computed(
   () => shapeOptions.find((o) => o.id === donutConfig.shapeId)?.label ?? ''
@@ -70,7 +67,7 @@ const dietSummary = computed(() => {
         icon-bg="#FCE9DA"
         title="Form"
         :summary="shapeSummary"
-        :open="openSectionId === 'form'"
+        :open="sceneFocus.openSectionId === 'form'"
         @toggle="toggleSection('form')"
       >
         <OptionCardGroup
@@ -87,7 +84,7 @@ const dietSummary = computed(() => {
         icon-bg="#F3E4C0"
         title="Teig"
         :summary="doughSummary"
-        :open="openSectionId === 'teig'"
+        :open="sceneFocus.openSectionId === 'teig'"
         @toggle="toggleSection('teig')"
       >
         <OptionCardGroup
@@ -104,7 +101,7 @@ const dietSummary = computed(() => {
         icon-bg="#EDE3F5"
         title="Füllung"
         :summary="fillingSummary"
-        :open="openSectionId === 'fuellung'"
+        :open="sceneFocus.openSectionId === 'fuellung'"
         @toggle="toggleSection('fuellung')"
       >
         <OptionCardGroup
@@ -121,7 +118,7 @@ const dietSummary = computed(() => {
         icon-bg="#FBE1EE"
         title="Icing / Glasur"
         :summary="icingSummary"
-        :open="openSectionId === 'icing'"
+        :open="sceneFocus.openSectionId === 'icing'"
         @toggle="toggleSection('icing')"
       >
         <div class="icing-content">
@@ -154,7 +151,7 @@ const dietSummary = computed(() => {
         icon-bg="#FCE9DA"
         title="Toppings"
         :summary="toppingsSummary"
-        :open="openSectionId === 'toppings'"
+        :open="sceneFocus.openSectionId === 'toppings'"
         @toggle="toggleSection('toppings')"
       >
         <ToppingChipGroup
@@ -171,7 +168,7 @@ const dietSummary = computed(() => {
         icon-bg="#E3F0E6"
         title="Ernährungsfilter"
         :summary="dietSummary"
-        :open="openSectionId === 'diaet'"
+        :open="sceneFocus.openSectionId === 'diaet'"
         @toggle="toggleSection('diaet')"
       >
         <div class="diet-content">
